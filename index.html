@@ -242,6 +242,25 @@ main { max-width: 700px; margin: 0 auto; padding: 0 16px 80px; }
 .hr-chips { display:flex; gap:5px; flex-wrap:wrap; margin-top:4px; }
 .hr-chip { font-size:0.68rem; font-family:'DM Mono',monospace; padding:2px 7px; border-radius:4px; background:rgba(200,64,26,0.08); color:var(--hr-color); border:1px solid rgba(200,64,26,0.14); }
 
+/* HISTORY */
+.delta-chip { font-family:'DM Mono',monospace; font-size:0.62rem; padding:1px 6px; border-radius:3px; font-weight:500; margin-left:5px; vertical-align:middle; }
+.delta-chip.improved { color:var(--good); background:rgba(42,148,96,0.1); }
+.delta-chip.regressed { color:var(--bad); background:rgba(200,64,26,0.1); }
+.history-section { border-top:1px solid var(--border); }
+.history-toggle { padding:9px 15px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-family:'DM Mono',monospace; font-size:0.67rem; color:var(--ink3); text-transform:uppercase; letter-spacing:0.07em; user-select:none; background:var(--card); }
+.history-toggle:hover { background:var(--border); }
+.hist-caret { font-size:0.6rem; transition:transform 0.2s; }
+.history-section.open .hist-caret { transform:rotate(180deg); }
+.history-body { display:none; }
+.history-section.open .history-body { display:block; }
+.hist-entry { padding:9px 15px; border-top:1px solid var(--border); display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; background:var(--card); }
+.hist-date { font-family:'DM Mono',monospace; font-size:0.63rem; color:var(--ink3); flex-shrink:0; }
+.hist-score { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.9rem; }
+.hist-delta { font-family:'DM Mono',monospace; font-size:0.62rem; padding:1px 6px; border-radius:3px; font-weight:500; }
+.hist-delta.improved { color:var(--good); background:rgba(42,148,96,0.1); }
+.hist-delta.regressed { color:var(--bad); background:rgba(200,64,26,0.1); }
+.hist-notes { font-size:0.65rem; color:var(--ink3); font-style:italic; width:100%; margin-top:1px; }
+
 /* ACCESSORY DRAWER */
 .accessory-drawer { border-top:1px solid var(--border); background:#fdf7f2; }
 .acc-drawer-header { padding:11px 15px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); border-bottom:1px solid rgba(200,64,26,0.1); }
@@ -912,6 +931,9 @@ function renderBenchmarks() {
       const restricted = isRestricted(b);
       const injuryNotes = getInjuryNotes(b);
       const usedScale = saved?.scaled || 'rx';
+      const prevResult = saved?.history?.[0] || null;
+      const progressDelta = (saved && prevResult) ? calcDelta(b, saved, prevResult) : null;
+      const deltaHtml = progressDelta ? `<span class="delta-chip ${progressDelta.improved ? 'improved' : 'regressed'}">${progressDelta.label}</span>` : '';
 
       html += `<div class="bench-card ${restricted ? 'restricted' : ''}" id="bcard-${b.id}">
         <div class="bench-card-header" onclick="toggleBench('${b.id}')">
@@ -1003,12 +1025,13 @@ function renderBenchmarks() {
             ${saved ? `
             <div class="saved-result visible">
               <div class="saved-date">${saved.date}${saved.scaled && saved.scaled!=='rx' ? ` · ${saved.scaled.toUpperCase()}` : ''}</div>
-              <div class="saved-score-line" style="color:${gradeColor(saved.grade)}">${saved.displayVal} — Grade ${saved.grade}</div>
+              <div class="saved-score-line" style="color:${gradeColor(saved.grade)}">${saved.displayVal} — Grade ${saved.grade}${deltaHtml}</div>
               ${saved.notes ? `<div style="font-size:0.72rem;color:var(--ink3);margin-top:3px;font-style:italic;">"${saved.notes}"</div>` : ''}
               ${saved.hrMax ? `<div class="hr-chips"><span class="hr-chip">Max ${saved.hrMax} bpm</span>${saved.hrAvg?`<span class="hr-chip">Avg ${saved.hrAvg} bpm</span>`:''} ${saved.hrPct?`<span class="hr-chip">${saved.hrPct}% HR max</span>`:''}</div>` : ''}
             </div>` : ''}
           </div>
 
+          ${renderHistorySection(b, saved?.history)}
           ${saved && saved.grade !== 'A' ? renderBenchAccessories(b, saved.grade, saved.scaled) : ''}
         </div>
       </div>`;
@@ -1019,6 +1042,48 @@ function renderBenchmarks() {
 }
 
 function gradeColor(g) { return { A:'var(--score-a)', B:'var(--score-b)', C:'var(--score-c)', D:'var(--score-d)' }[g] || 'var(--ink)'; }
+
+function calcDelta(bench, curr, prev) {
+  if (!prev || curr.rawValue == null || prev.rawValue == null) return null;
+  const diff = bench.isTime ? prev.rawValue - curr.rawValue : curr.rawValue - prev.rawValue;
+  if (Math.abs(diff) < 0.001) return null;
+  const improved = diff > 0;
+  let label;
+  if (bench.isTime) {
+    const abs = Math.abs(diff);
+    const m = Math.floor(abs / 60), s = Math.round(abs % 60);
+    label = m > 0 ? `${m}:${String(s).padStart(2,'0')}` : `${s}s`;
+  } else if (bench.isRoundsReps) {
+    label = `${Math.abs(diff).toFixed(1)} rds`;
+  } else if (bench.needsBW || bench.inputType === 'weight') {
+    label = `${Math.round(Math.abs(diff))} lbs`;
+  } else {
+    label = `${Math.round(Math.abs(diff))} reps`;
+  }
+  return { improved, label: `${improved ? '↑' : '↓'} ${label}` };
+}
+
+function renderHistorySection(bench, history) {
+  if (!history || !history.length) return '';
+  const entries = history.map((entry, i) => {
+    const older = history[i + 1];
+    const delta = older ? calcDelta(bench, entry, older) : null;
+    const scaleTag = entry.scaled && entry.scaled !== 'rx' ? ` · ${entry.scaled.toUpperCase()}` : '';
+    return `<div class="hist-entry">
+      <span class="hist-date">${entry.date}${scaleTag}</span>
+      <span class="hist-score" style="color:${gradeColor(entry.grade)}">${entry.displayVal} — ${entry.grade}</span>
+      ${delta ? `<span class="hist-delta ${delta.improved ? 'improved' : 'regressed'}">${delta.label}</span>` : ''}
+      ${entry.notes ? `<div class="hist-notes">"${entry.notes}"</div>` : ''}
+    </div>`;
+  }).join('');
+  return `<div class="history-section">
+    <div class="history-toggle" onclick="this.closest('.history-section').classList.toggle('open')">
+      <span>History · ${history.length} previous entr${history.length === 1 ? 'y' : 'ies'}</span>
+      <span class="hist-caret">▼</span>
+    </div>
+    <div class="history-body">${entries}</div>
+  </div>`;
+}
 
 function setScale(id, mode) {
   ['rx','scaled','modified'].forEach(m => {
@@ -1093,7 +1158,11 @@ function saveBench(id) {
   const notes = document.getElementById(`notes-${id}`).value;
   const extra = bench.extraField ? document.getElementById(`extra-${id}`).value : null;
 
-  currentUser.benchResults[id] = { grade, rawInput, rawValue, bw, displayVal:rawInput, date, hrMax, hrAvg, hrPct, notes, extra, scaled };
+  const prev = currentUser.benchResults[id];
+  const history = prev
+    ? [{ grade:prev.grade, rawInput:prev.rawInput, rawValue:prev.rawValue, bw:prev.bw, displayVal:prev.displayVal, date:prev.date, hrMax:prev.hrMax, hrAvg:prev.hrAvg, hrPct:prev.hrPct, notes:prev.notes, extra:prev.extra, scaled:prev.scaled }, ...(prev.history||[])]
+    : [];
+  currentUser.benchResults[id] = { grade, rawInput, rawValue, bw, displayVal:rawInput, date, hrMax, hrAvg, hrPct, notes, extra, scaled, history };
   saveUser(currentUser.name, currentUser);
 
   renderBenchmarks();

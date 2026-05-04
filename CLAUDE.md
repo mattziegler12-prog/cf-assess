@@ -41,6 +41,8 @@ Implement benchmark history log — store an array of results per benchmark (not
 - **Max 10 users** hard-capped in `createUser()` — do not raise without reason
 - **Lbs only** — no kg, no toggle; all grading thresholds are in lbs
 - **Only most-recent result stored per benchmark** — history log is the top-priority missing feature
+- **No export/import** — localStorage data is browser/device-local; real data should be backed up via JSON export before any code changes that touch the data model
+- **Data loss risks:** clearing browser site data, using a different browser or device, or clicking "Clear all data" in Profile tab (has confirmation). Closing/reopening the tab is safe — localStorage persists.
 - **Fonts require CDN** — offline use falls back to system fonts
 - If user count ever exceeds 10 or cross-device sync is needed, migrate to FastAPI + SQLite (same stack as HydroCalc)
 
@@ -57,7 +59,7 @@ Implement benchmark history log — store an array of results per benchmark (not
 
 ### Upcoming features (prioritized)
 1. **Benchmark history log** — store array of results with dates; show sparkline/delta vs previous on card
-2. **GitHub Pages deployment** — public URL so athletes can access from gym phones without file sharing
+2. **JSON export/import** — download all user data as a JSON file and re-import it; needed as a backup before code changes and for cross-device use
 3. **Combined priority list** — fourth tab merging gaps from benchmarks + self-assessment into ranked weekly accessory prescription
 4. Printable/shareable summary (PDF-style, for coach review)
 5. Admin view (PIN-protected, read-only, all users side by side)

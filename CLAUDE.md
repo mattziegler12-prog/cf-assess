@@ -30,12 +30,12 @@ cf-assess/
 - Self-Assessment Tab: 18 questions across 3 domains, 0–3 scoring, domain bar charts, weakness/strength cards with accessory work, results persist per user
 - Profile Tab: bodyweight field, 6 injury flags (overhead, lower_back, knee, shoulder, wrist, cardio), summary stats, per-user data clear
 
-**Not yet done (first session):**
-- File still named `cf-assess-v3.html` — needs rename to `index.html`
-- Git not initialized, not yet on GitHub, Pages not enabled
+**Deployed:**
+- `index.html` is live at https://mattziegler12-prog.github.io/cf-assess/
+- Private source repo: `cf-assessment` (origin); public Pages repo: `cf-assess` (pages remote)
 
 ## Next Task
-Rename `cf-assess-v3.html` → `index.html`, initialize git, push to the `cf-assess` repo on GitHub, and enable GitHub Pages.
+Implement benchmark history log — store an array of results per benchmark (not just the most recent) so athletes can track improvement over time. Show a delta vs previous result on the card.
 
 ## Known Issues / Constraints
 - **Max 10 users** hard-capped in `createUser()` — do not raise without reason

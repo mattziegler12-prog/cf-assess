@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CF Assess</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f1ed;
+  --surface: #ffffff;
+  --card: #faf9f7;
+  --border: #e0dbd3;
+  --border2: #ccc5bb;
+  --ink: #1a1714;
+  --ink2: #5a534d;
+  --ink3: #9a9088;
+  --accent: #c8401a;
+  --accent2: #1a6bc8;
+  --accent3: #2a9460;
+  --warn: #d4820a;
+  --good: #2a9460;
+  --bad: #c8401a;
+  --score-a: #2a9460;
+  --score-b: #1a6bc8;
+  --score-c: #d4820a;
+  --score-d: #c8401a;
+  --hr-color: #c8401a;
+  --scale-color: #7a4fc8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink); font-family: 'Barlow', sans-serif; min-height: 100vh; }
+
+/* ---- LOGIN ---- */
+#loginScreen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.login-logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 3rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.login-logo span { color: var(--accent); }
+.login-sub { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--ink3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 36px; }
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+}
+.login-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 20px; color: var(--ink2); }
+
+.user-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.user-btn {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg); border: 1px solid var(--border2);
+  border-radius: 9px; padding: 13px 14px; cursor: pointer;
+  transition: border-color 0.15s, background 0.12s;
+  text-align: left; width: 100%;
+}
+.user-btn:hover { border-color: var(--accent2); background: white; }
+.user-avatar {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--ink); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1rem;
+  flex-shrink: 0;
+}
+.user-name { font-weight: 500; font-size: 0.9rem; }
+.user-last { font-size: 0.68rem; color: var(--ink3); font-family: 'DM Mono', monospace; }
+
+.divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; }
+.divider::before, .divider::after { content:''; flex:1; height:1px; background:var(--border); }
+.divider span { font-size: 0.68rem; color: var(--ink3); font-family: 'DM Mono', monospace; }
+
+.new-user-btn {
+  width: 100%; background: var(--ink); color: white; border: none;
+  border-radius: 9px; padding: 14px;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 1rem; letter-spacing: 0.08em; text-transform: uppercase;
+  cursor: pointer; transition: background 0.15s;
+}
+.new-user-btn:hover { background: #2d2925; }
+
+/* PIN modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 24px;
+}
+.modal { background: var(--surface); border-radius: 14px; padding: 28px 24px; width: 100%; max-width: 340px; }
+.modal-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.2rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 20px; }
+.modal-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 12px 14px;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 1.1rem;
+  color: var(--ink); margin-bottom: 10px;
+}
+.modal-input:focus { outline: none; border-color: var(--accent2); }
+.modal-error { font-size: 0.75rem; color: var(--accent); font-family: 'DM Mono', monospace; margin-bottom: 10px; display: none; }
+.modal-row { display: flex; gap: 10px; }
+.btn-cancel { flex:1; background:none; border:1px solid var(--border2); border-radius:8px; padding:13px; cursor:pointer; color:var(--ink3); font-size:0.85rem; transition:border-color 0.15s; }
+.btn-cancel:hover { border-color: var(--ink2); }
+.btn-confirm { flex:2; background:var(--ink); color:white; border:none; border-radius:8px; padding:13px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; }
+.btn-confirm:hover { background: #2d2925; }
+
+/* ---- MAIN APP ---- */
+#appScreen { display: none; }
+
+header {
+  background: var(--ink); color: white;
+  position: sticky; top: 0; z-index: 200;
+}
+.header-inner {
+  max-width: 700px; margin: 0 auto;
+  display: flex; align-items: stretch; gap: 0; padding: 0 16px;
+}
+.logo { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.4rem; letter-spacing: 0.08em; padding: 14px 16px 14px 0; color: white; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.12); margin-right: 4px; }
+.logo span { color: var(--accent); }
+.tab-nav { display: flex; align-items: stretch; flex: 1; }
+.tab-btn { background:none; border:none; color:rgba(255,255,255,0.45); font-family:'Barlow Condensed',sans-serif; font-size:0.82rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; padding:0 12px; cursor:pointer; border-bottom:3px solid transparent; transition:color 0.15s, border-color 0.15s; white-space:nowrap; }
+.tab-btn.active { color:white; border-bottom-color:var(--accent); }
+.user-pill { display:flex; align-items:center; gap:8px; padding: 0 0 0 12px; margin-left:auto; flex-shrink:0; }
+.user-pill-avatar { width:28px; height:28px; border-radius:6px; background:rgba(255,255,255,0.15); color:white; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:0.85rem; }
+.user-pill-name { font-size:0.75rem; color:rgba(255,255,255,0.6); font-family:'DM Mono',monospace; }
+.logout-btn { background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; font-size:0.7rem; padding: 0 4px; transition:color 0.15s; }
+.logout-btn:hover { color:rgba(255,255,255,0.8); }
+
+main { max-width: 700px; margin: 0 auto; padding: 0 16px 80px; }
+
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+.page-header { padding: 24px 0 18px; border-bottom: 2px solid var(--ink); margin-bottom: 20px; }
+.page-title { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:2.2rem; letter-spacing:0.04em; line-height:1; text-transform:uppercase; }
+.page-title span { color:var(--accent); }
+.page-sub { font-size:0.78rem; color:var(--ink3); margin-top:5px; font-family:'DM Mono',monospace; letter-spacing:0.04em; }
+
+/* injury flags */
+.injury-banner {
+  background: rgba(212,130,10,0.08); border: 1px solid rgba(212,130,10,0.25);
+  border-radius: 9px; padding: 12px 14px; margin-bottom: 16px;
+  font-size: 0.78rem; color: var(--warn);
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.injury-banner strong { font-weight:600; }
+
+/* GROUP LABEL */
+.group-label { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.76rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink3); margin:20px 0 10px; display:flex; align-items:center; gap:8px; }
+.group-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* BENCH CARDS */
+.bench-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; overflow:hidden; }
+.bench-card.restricted { opacity: 0.55; }
+
+.bench-card-header { padding:13px 15px; display:flex; align-items:flex-start; gap:11px; cursor:pointer; user-select:none; transition:background 0.1s; }
+.bench-card-header:hover { background:var(--card); }
+.bench-icon { width:36px; height:36px; background:var(--ink); color:white; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.bench-meta { flex:1; }
+.bench-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; letter-spacing:0.04em; text-transform:uppercase; line-height:1.1; }
+.bench-type { font-size:0.68rem; color:var(--ink3); font-family:'DM Mono',monospace; margin-top:3px; }
+.bench-status { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+
+.score-badge { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.95rem; letter-spacing:0.06em; padding:3px 10px; border-radius:5px; }
+.score-A { background:rgba(42,148,96,0.12); color:var(--score-a); }
+.score-B { background:rgba(26,107,200,0.12); color:var(--score-b); }
+.score-C { background:rgba(212,130,10,0.12); color:var(--score-c); }
+.score-D { background:rgba(200,64,26,0.12); color:var(--score-d); }
+.score-none { background:var(--card); color:var(--ink3); font-size:0.7rem; padding:4px 10px; }
+.score-scaled { background:rgba(122,79,200,0.12); color:var(--scale-color); }
+.score-modified { background:rgba(212,130,10,0.12); color:var(--warn); }
+
+.expand-caret { color:var(--ink3); font-size:0.68rem; transition:transform 0.2s; margin-top:2px; }
+.bench-card.open .expand-caret { transform:rotate(180deg); }
+
+.bench-body { display:none; border-top:1px solid var(--border); }
+.bench-card.open .bench-body { display:block; }
+
+.bench-description { padding:13px 15px; background:var(--card); border-bottom:1px solid var(--border); }
+.bench-wod { font-family:'DM Mono',monospace; font-size:0.76rem; color:var(--ink2); line-height:1.9; white-space:pre-line; }
+
+/* scaling toggle */
+.scale-toggle-row { padding:10px 15px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center; }
+.scale-toggle-label { font-size:0.72rem; font-family:'DM Mono',monospace; color:var(--ink3); flex:1; }
+.toggle-opts { display:flex; gap:6px; }
+.toggle-opt {
+  padding:5px 12px; border-radius:5px; border:1px solid var(--border2);
+  background:var(--bg); cursor:pointer; font-size:0.72rem; font-family:'DM Mono',monospace;
+  color:var(--ink2); transition:all 0.12s;
+}
+.toggle-opt.active-rx { background:var(--ink); color:white; border-color:var(--ink); }
+.toggle-opt.active-scaled { background:var(--scale-color); color:white; border-color:var(--scale-color); }
+.toggle-opt.active-modified { background:var(--warn); color:white; border-color:var(--warn); }
+
+.scaled-wod { padding:10px 15px; background:rgba(122,79,200,0.04); border-bottom:1px solid rgba(122,79,200,0.12); display:none; }
+.scaled-wod.visible { display:block; }
+.scaled-wod-label { font-size:0.65rem; font-family:'DM Mono',monospace; color:var(--scale-color); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.scaled-wod-text { font-family:'DM Mono',monospace; font-size:0.74rem; color:var(--ink2); line-height:1.8; white-space:pre-line; }
+
+.modified-wod { padding:10px 15px; background:rgba(212,130,10,0.04); border-bottom:1px solid rgba(212,130,10,0.12); display:none; }
+.modified-wod.visible { display:block; }
+.modified-wod-label { font-size:0.65rem; font-family:'DM Mono',monospace; color:var(--warn); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.modified-wod-text { font-family:'DM Mono',monospace; font-size:0.74rem; color:var(--ink2); line-height:1.8; white-space:pre-line; }
+
+.bench-standards { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--border); }
+.standard-cell { padding:9px 10px; border-right:1px solid var(--border); text-align:center; }
+.standard-cell:last-child { border-right:none; }
+.std-grade { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1rem; margin-bottom:3px; }
+.std-label { font-size:0.64rem; color:var(--ink3); font-family:'DM Mono',monospace; line-height:1.4; }
+
+.bench-input-area { padding:14px 15px; }
+.input-row { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:9px; }
+.input-row.three { grid-template-columns:1fr 1fr 1fr; }
+.field-group { display:flex; flex-direction:column; gap:5px; }
+.field-label { font-size:0.65rem; font-family:'DM Mono',monospace; color:var(--ink3); text-transform:uppercase; letter-spacing:0.07em; }
+.field-input { background:var(--bg); border:1px solid var(--border2); border-radius:7px; padding:10px 11px; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:0.95rem; color:var(--ink); width:100%; transition:border-color 0.15s; -webkit-appearance:none; }
+.field-input:focus { outline:none; border-color:var(--accent2); }
+.field-input::placeholder { color:var(--ink3); font-weight:400; font-size:0.82rem; }
+
+.hr-row { background:rgba(200,64,26,0.05); border:1px solid rgba(200,64,26,0.14); border-radius:8px; padding:11px; margin-bottom:9px; }
+.hr-title { font-size:0.65rem; font-family:'DM Mono',monospace; color:var(--hr-color); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:7px; }
+.hr-fields { display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; }
+
+.save-btn { width:100%; background:var(--ink); color:white; border:none; border-radius:8px; padding:13px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.95rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background 0.15s; }
+.save-btn:hover { background:#2d2925; }
+
+.saved-result { margin-top:9px; padding:11px; background:rgba(42,148,96,0.06); border:1px solid rgba(42,148,96,0.18); border-radius:8px; display:none; }
+.saved-result.visible { display:block; }
+.saved-date { font-size:0.65rem; font-family:'DM Mono',monospace; color:var(--ink3); }
+.saved-score-line { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.05rem; margin:3px 0 2px; }
+.hr-chips { display:flex; gap:5px; flex-wrap:wrap; margin-top:4px; }
+.hr-chip { font-size:0.68rem; font-family:'DM Mono',monospace; padding:2px 7px; border-radius:4px; background:rgba(200,64,26,0.08); color:var(--hr-color); border:1px solid rgba(200,64,26,0.14); }
+
+/* ACCESSORY DRAWER */
+.accessory-drawer { border-top:1px solid var(--border); background:#fdf7f2; }
+.acc-drawer-header { padding:11px 15px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); border-bottom:1px solid rgba(200,64,26,0.1); }
+.acc-item { padding:11px 15px; border-bottom:1px solid rgba(200,64,26,0.06); display:flex; gap:9px; }
+.acc-item:last-child { border-bottom:none; }
+.acc-dot { width:5px; height:5px; background:var(--accent); border-radius:50%; margin-top:7px; flex-shrink:0; }
+.acc-name { font-weight:500; font-size:0.85rem; margin-bottom:2px; }
+.acc-spec { font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--accent); margin-bottom:2px; }
+.acc-why { font-size:0.72rem; color:var(--ink3); line-height:1.5; }
+
+/* INJURY INTAKE */
+.injury-section { margin-bottom:24px; }
+.injury-section-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:12px; color:var(--ink2); }
+.injury-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.injury-toggle {
+  background:var(--bg); border:1.5px solid var(--border2);
+  border-radius:8px; padding:12px; cursor:pointer;
+  display:flex; align-items:flex-start; gap:10px;
+  transition:border-color 0.12s, background 0.12s;
+  text-align:left;
+}
+.injury-toggle:hover { border-color:var(--warn); }
+.injury-toggle.active { background:rgba(212,130,10,0.07); border-color:var(--warn); }
+.injury-check { width:18px; height:18px; border-radius:4px; border:2px solid var(--border2); background:white; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:var(--warn); transition:all 0.12s; }
+.injury-toggle.active .injury-check { border-color:var(--warn); background:var(--warn); color:white; }
+.injury-label { font-size:0.82rem; font-weight:500; }
+.injury-sub-label { font-size:0.68rem; color:var(--ink3); margin-top:2px; }
+
+/* SELF-ASSESS */
+.assess-progress { height:4px; background:var(--border); border-radius:2px; margin-bottom:18px; overflow:hidden; }
+.assess-progress-fill { height:100%; background:var(--accent); border-radius:2px; transition:width 0.35s ease; }
+.q-label { font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--ink3); letter-spacing:0.06em; margin-bottom:14px; }
+.q-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:14px; }
+.q-domain-tag { font-family:'DM Mono',monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink3); margin-bottom:7px; }
+.q-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.15rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px; }
+.q-sub { font-size:0.78rem; color:var(--ink2); line-height:1.5; margin-bottom:14px; }
+.q-options { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.q-opt-btn { background:var(--bg); border:1.5px solid var(--border2); border-radius:8px; padding:11px 10px; cursor:pointer; text-align:left; transition:border-color 0.12s, background 0.12s; color:var(--ink); font-family:'Barlow',sans-serif; }
+.q-opt-btn .opt-num { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.5rem; line-height:1; margin-bottom:2px; display:block; color:var(--ink3); }
+.q-opt-btn .opt-text { font-size:0.72rem; color:var(--ink2); line-height:1.3; }
+.q-opt-btn:hover { border-color:var(--accent2); }
+.q-opt-btn.sel-3 { border-color:var(--score-a); background:rgba(42,148,96,0.06); }
+.q-opt-btn.sel-3 .opt-num { color:var(--score-a); }
+.q-opt-btn.sel-2 { border-color:var(--score-b); background:rgba(26,107,200,0.06); }
+.q-opt-btn.sel-2 .opt-num { color:var(--score-b); }
+.q-opt-btn.sel-1 { border-color:var(--score-c); background:rgba(212,130,10,0.06); }
+.q-opt-btn.sel-1 .opt-num { color:var(--score-c); }
+.q-opt-btn.sel-0 { border-color:var(--score-d); background:rgba(200,64,26,0.06); }
+.q-opt-btn.sel-0 .opt-num { color:var(--score-d); }
+.q-footer { display:flex; gap:9px; }
+.btn-back { background:none; border:1px solid var(--border2); border-radius:8px; padding:12px 16px; cursor:pointer; color:var(--ink3); font-size:0.82rem; transition:border-color 0.15s; }
+.btn-back:hover { border-color:var(--ink2); color:var(--ink); }
+.btn-forward { flex:1; background:var(--ink); color:white; border:none; border-radius:8px; padding:12px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.95rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background 0.15s, opacity 0.15s; }
+.btn-forward:disabled { opacity:0.3; cursor:not-allowed; }
+.btn-forward:not(:disabled):hover { background:#2d2925; }
+
+/* ASSESS RESULTS */
+.results-summary { display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; margin-bottom:20px; }
+.domain-result-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:13px 11px; text-align:center; }
+.dr-icon { font-size:1.2rem; margin-bottom:5px; }
+.dr-name { font-size:0.6rem; font-family:'DM Mono',monospace; color:var(--ink3); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:7px; }
+.dr-bar-wrap { height:5px; background:var(--border); border-radius:3px; margin-bottom:5px; overflow:hidden; }
+.dr-bar { height:100%; border-radius:3px; transition:width 0.7s ease; }
+.dr-pct { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.15rem; }
+
+.result-weakness-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:8px; overflow:hidden; }
+.rwc-header { padding:13px 15px; display:flex; align-items:center; gap:9px; cursor:pointer; user-select:none; }
+.rwc-header:hover { background:var(--card); }
+.rwc-score-pill { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.1rem; width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.rwc-score-1 { background:rgba(212,130,10,0.12); color:var(--warn); }
+.rwc-score-0 { background:rgba(200,64,26,0.12); color:var(--bad); }
+.rwc-info { flex:1; }
+.rwc-name { font-weight:500; font-size:0.88rem; }
+.rwc-domain { font-size:0.65rem; font-family:'DM Mono',monospace; color:var(--ink3); }
+.rwc-caret { color:var(--ink3); font-size:0.68rem; transition:transform 0.2s; }
+.result-weakness-card.open .rwc-caret { transform:rotate(180deg); }
+.rwc-body { display:none; border-top:1px solid var(--border); padding:13px 15px; background:#fdf7f2; }
+.result-weakness-card.open .rwc-body { display:block; }
+
+.strengths-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
+.strength-tag { background:rgba(42,148,96,0.08); border:1px solid rgba(42,148,96,0.2); color:var(--good); border-radius:20px; padding:4px 11px; font-size:0.72rem; font-family:'DM Mono',monospace; }
+
+.restart-link { display:block; text-align:center; margin-top:18px; padding:13px; border:1px solid var(--border2); border-radius:8px; background:none; cursor:pointer; font-family:'DM Mono',monospace; font-size:0.72rem; color:var(--ink3); letter-spacing:0.07em; text-transform:uppercase; transition:border-color 0.15s, color 0.15s; }
+.restart-link:hover { border-color:var(--ink2); color:var(--ink); }
+
+/* PROFILE TAB */
+.profile-section { margin-bottom:24px; }
+.profile-section-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+.profile-stat-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.profile-stat { background:var(--surface); border:1px solid var(--border); border-radius:9px; padding:12px 14px; }
+.ps-label { font-size:0.65rem; font-family:'DM Mono',monospace; color:var(--ink3); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:4px; }
+.ps-val { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.2rem; }
+.ps-sub { font-size:0.7rem; color:var(--ink3); margin-top:2px; }
+
+.danger-zone { background:rgba(200,64,26,0.05); border:1px solid rgba(200,64,26,0.2); border-radius:9px; padding:16px; }
+.danger-title { font-size:0.72rem; font-family:'DM Mono',monospace; color:var(--accent); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px; }
+.danger-btn { background:none; border:1px solid rgba(200,64,26,0.3); border-radius:7px; padding:10px 16px; cursor:pointer; color:var(--accent); font-size:0.82rem; font-family:'DM Mono',monospace; transition:all 0.15s; }
+.danger-btn:hover { background:var(--accent); color:white; }
+
+@media (max-width:420px) {
+  .bench-standards { grid-template-columns:repeat(2,1fr); }
+  .hr-fields { grid-template-columns:1fr 1fr; }
+  .injury-grid { grid-template-columns:1fr; }
+  .results-summary { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen">
+  <div class="login-logo">CF<span>.</span>ASSESS</div>
+  <div class="login-sub">CrossFit Performance Tracker</div>
+  <div class="login-card">
+    <div class="login-title">Select Athlete</div>
+    <div class="user-list" id="userList"></div>
+    <div class="divider"><span>or</span></div>
+    <button class="new-user-btn" onclick="showNewUserModal()">+ Create Profile</button>
+  </div>
+</div>
+
+<!-- ===== PIN MODAL ===== -->
+<div class="modal-overlay" id="pinModal" style="display:none">
+  <div class="modal">
+    <div class="modal-title" id="pinModalTitle">Enter PIN</div>
+    <input class="modal-input" id="pinInput" type="password" maxlength="4" placeholder="••••" inputmode="numeric">
+    <div class="modal-error" id="pinError">Incorrect PIN. Try again.</div>
+    <div class="modal-row">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmPin()">Enter →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NEW USER MODAL ===== -->
+<div class="modal-overlay" id="newUserModal" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Create Profile</div>
+    <input class="modal-input" id="newUserName" placeholder="Your name" style="text-transform:capitalize">
+    <input class="modal-input" id="newUserPin" type="password" maxlength="4" placeholder="Choose a 4-digit PIN" inputmode="numeric">
+    <div class="modal-error" id="newUserError"></div>
+    <div class="modal-row">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="createUser()">Create →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="appScreen">
+  <header>
+    <div class="header-inner">
+      <div class="logo">CF<span>.</span>ASSESS</div>
+      <nav class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('benchmark')">Benchmarks</button>
+        <button class="tab-btn" onclick="switchTab('selfassess')">Self-Assess</button>
+        <button class="tab-btn" onclick="switchTab('profile')">Profile</button>
+      </nav>
+      <div class="user-pill">
+        <div class="user-pill-avatar" id="headerAvatar"></div>
+        <span class="user-pill-name" id="headerName"></span>
+        <button class="logout-btn" onclick="logout()" title="Switch user">⏏</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- BENCHMARK TAB -->
+    <div id="tab-benchmark" class="tab-panel active">
+      <div class="page-header">
+        <div class="page-title">BENCHMARK<br><span>TESTS</span></div>
+        <div class="page-sub">Log results · Rx or scaled · Garmin HR · Auto-graded</div>
+      </div>
+      <div id="injuryBanner"></div>
+      <div id="benchmarkList"></div>
+    </div>
+
+    <!-- SELF-ASSESS TAB -->
+    <div id="tab-selfassess" class="tab-panel">
+      <div class="page-header">
+        <div class="page-title">SELF<br><span>ASSESSMENT</span></div>
+        <div class="page-sub">18 questions · Gymnastics, Olympic lifts, Conditioning</div>
+      </div>
+      <div id="assessBody">
+        <div class="assess-progress"><div class="assess-progress-fill" id="assessBar" style="width:0%"></div></div>
+        <div class="q-label" id="qLabel">Question 1 of 18</div>
+        <div id="qContainer"></div>
+        <div class="q-footer">
+          <button class="btn-back" id="qBackBtn" onclick="qPrev()" style="display:none">← Back</button>
+          <button class="btn-forward" id="qNextBtn" onclick="qNext()" disabled>Next →</button>
+        </div>
+      </div>
+      <div id="assessResults"></div>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div id="tab-profile" class="tab-panel">
+      <div class="page-header">
+        <div class="page-title">MY<br><span>PROFILE</span></div>
+        <div class="page-sub">Limitations · Stats · Data</div>
+      </div>
+      <div id="profileContent"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ====================== DATA ======================
+
+const INJURY_FLAGS = [
+  { id:'overhead', label:'Overhead Restriction', sub:'Wrist, shoulder, or neck limits overhead pressing/catching', restricts:['ohs3rm','snatch1rm','grace'] },
+  { id:'lower_back', label:'Lower Back', sub:'Pain or injury limiting hinging or heavy axial loading', restricts:[] },
+  { id:'knee', label:'Knee / Hip', sub:'Limits squat depth or single-leg work', restricts:['ohs3rm','snatch1rm'] },
+  { id:'shoulder', label:'Shoulder', sub:'Rotator cuff, labrum, or impingement limiting pressing', restricts:['pull3min','fran'] },
+  { id:'wrist', label:'Wrist', sub:'Limits front rack, bar grip, or push positions', restricts:['grace','snatch1rm','ohs3rm'] },
+  { id:'cardio', label:'Cardiac / Respiratory', sub:'Doctor-imposed HR limits or lung condition', restricts:[] },
+];
+
+const BENCHMARKS = [
+  {
+    id:'pull3min', domain:'Gymnastics', icon:'🤸',
+    name:'Max Pull-up Test',
+    type:'Prescribed · 3-min AMRAP strict',
+    wod:`3-Minute AMRAP\nStrict Pull-ups\nDead hang start each rep`,
+    scaledWod:`3-Minute AMRAP\nBanded Strict Pull-ups (lightest band)\n— or —\nRing Rows (feet elevated)`,
+    modifiedWod:`3-Minute AMRAP\nRing Rows (full extension)\n— or —\nTRX Row / Lat Pulldown Machine`,
+    inputType:'reps', inputLabel:'Total Reps', inputPlaceholder:'0',
+    standards:{ A:'30+ reps', B:'20–29 reps', C:'10–19 reps', D:'<10 reps' },
+    thresholds:[10,20,30], isTime:false,
+    scaledStandards:{ A:'20+ reps', B:'12–19 reps', C:'6–11 reps', D:'<6 reps' },
+    scaledThresholds:[6,12,20],
+    injuries:{ overhead:null, shoulder:'Use ring rows only — no overhead pull' },
+    accessories:{
+      A:[],
+      B:[{name:'Weighted Pull-up',spec:'4×4 @ +15–25 lbs',why:'Add load to push ceiling output.'},{name:'Ring MU Kip Practice',spec:'4×3 transitions',why:'Next skill built on pull-up base.'}],
+      C:[{name:'Strict Pull-up Negatives',spec:'5×5 @ 4s lower',why:'Eccentric overload for lat strength.'},{name:'Banded Strict Pull-up',spec:'4×8 lightest band',why:'Volume with assistance.'},{name:'Dead Hang Scapular Pull',spec:'3×30s + 10 pulls',why:'Starting position strength.'}],
+      D:[{name:'Jumping Negative',spec:'5×5 @ 5s lower',why:'Entry-level lat loading.'},{name:'Inverted Row (elevated)',spec:'4×10',why:'Horizontal to vertical pull foundation.'},{name:'Lat Pulldown',spec:'3×12 moderate',why:'Isolated lat strength.'}],
+    }
+  },
+  {
+    id:'fran', domain:'Gymnastics', icon:'⚡',
+    name:'Fran',
+    type:'CF Benchmark · 21-15-9 for time',
+    wod:`21-15-9\nThrusters (95/65 lbs)\nPull-ups\nFor Time`,
+    scaledWod:`21-15-9\nThrusters (65/45 lbs)\nBanded Pull-ups or Ring Rows\nFor Time`,
+    modifiedWod:`21-15-9\nDB Thrusters (light)\nRing Rows\nFor Time\n(Shoulder or wrist modification)`,
+    inputType:'time', inputLabel:'Time (mm:ss)', inputPlaceholder:'5:30',
+    standards:{ A:'<3:30', B:'3:30–6:00', C:'6:01–10:00', D:'>10:00' },
+    thresholds:[600,360,210], isTime:true,
+    scaledStandards:{ A:'<4:00', B:'4:00–7:00', C:'7:01–12:00', D:'>12:00' },
+    scaledThresholds:[720,420,240],
+    injuries:{ shoulder:'Use DB thrusters if overhead barbell restricted', wrist:'Switch to DB thrusters — barbell front rack may aggravate' },
+    accessories:{
+      A:[],
+      B:[{name:'Barbell Thruster Cycling',spec:'3×2 min AMRAP @ 80% Fran weight',why:'Push threshold at near-Rx weight.'},{name:'Kipping Pull-up Efficiency',spec:'5×10 unbroken',why:'Set management under fatigue.'}],
+      C:[{name:'Thruster 5×5',spec:'@ 75% Fran weight',why:'Raw strength in the pattern.'},{name:'Pull-up Volume',spec:'5×max strict',why:'Foundation before kipping efficiency.'},{name:'Barbell Front Squat Cycling',spec:'3×10 @ light',why:'Front rack comfort under fatigue.'}],
+      D:[{name:'DB Thruster 4×10',spec:'light — practice pattern',why:'Build the movement before barbell load.'},{name:'Kipping Swing Practice',spec:'5×10',why:'Kip before pull-ups.'},{name:'Front Squat + Press Drill',spec:'4×8 PVC',why:'Thruster mechanics.'}],
+    }
+  },
+  {
+    id:'du2min', domain:'Gymnastics', icon:'🪢',
+    name:'Double-Under Test',
+    type:'Prescribed · 2-min AMRAP',
+    wod:`2-Minute AMRAP\nDouble-Unders\n\nRecord total reps + best unbroken set`,
+    scaledWod:`2-Minute AMRAP\nSingle-Unders (count total)\n— or —\nDU attempts with scaling`,
+    modifiedWod:`2-Minute AMRAP\nSingle-Unders at max speed`,
+    inputType:'reps', inputLabel:'Total Reps', inputPlaceholder:'0',
+    extraField:{ label:'Best Unbroken Set', placeholder:'0', key:'unbroken' },
+    standards:{ A:'200+ reps', B:'120–199 reps', C:'60–119 reps', D:'<60 reps' },
+    thresholds:[60,120,200], isTime:false,
+    scaledStandards:{ A:'100+ DU or 400+ SU', B:'60–99 DU', C:'30–59 DU', D:'<30 DU' },
+    scaledThresholds:[30,60,100],
+    injuries:{},
+    accessories:{
+      A:[{name:'DU Speed Sets',spec:'5×30s max effort',why:'Push ceiling on RPM and rhythm.'}],
+      B:[{name:'Single–Double–Single Drill',spec:'3×50 reps',why:'Timing control.'},{name:'50-Rep Consistent Sets',spec:'5 sets daily',why:'Consistency before speed.'}],
+      C:[{name:'Wrist Mechanics Drill',spec:'5 min',why:'Arms do the work — wrists should.'},{name:'Singles at Max Speed',spec:'3×30s',why:'Build jump tempo.'},{name:'Penguin Jumps',spec:'3×20',why:'High tight jump mechanics.'}],
+      D:[{name:'DU Jump Practice',spec:'10 min daily',why:'Skill — repetition only fix.'},{name:'Rhythm Rope Work',spec:'5 min slow',why:'Pattern before speed.'}],
+    }
+  },
+  {
+    id:'grace', domain:'Olympic Lifts', icon:'🏋️',
+    name:'Grace',
+    type:'CF Benchmark · 30 Clean & Jerks for time',
+    wod:`For Time:\n30 Clean & Jerks\n135/95 lbs`,
+    scaledWod:`For Time:\n30 Clean & Jerks\n95/65 lbs\n(Power clean + push press acceptable)`,
+    modifiedWod:`For Time:\n30 DB Clean & Jerks\n35/25 lb DBs per hand\n(Wrist or overhead restriction)`,
+    inputType:'time', inputLabel:'Time (mm:ss)', inputPlaceholder:'3:00',
+    standards:{ A:'<2:00', B:'2:00–4:00', C:'4:01–7:00', D:'>7:00' },
+    thresholds:[420,240,120], isTime:true,
+    scaledStandards:{ A:'<2:30', B:'2:30–5:00', C:'5:01–9:00', D:'>9:00' },
+    scaledThresholds:[540,300,150],
+    injuries:{ overhead:'Use push press instead of jerk if catch is restricted', wrist:'Switch to DB clean & press — front rack may aggravate wrist' },
+    accessories:{
+      A:[],
+      B:[{name:'Touch-and-Go Clean Complex',spec:'5×5 @ Grace weight',why:'Efficiency at comp weight.'},{name:'Split Jerk Cycling',spec:'4×3 @ heavy',why:'Jerk speed under fatigue.'}],
+      C:[{name:'Power Clean 5×3',spec:'@ 75% C&J',why:'Pull strength and bar speed.'},{name:'Push Jerk + Split Jerk Drill',spec:'4×3 light',why:'Overhead receiving speed.'},{name:'EMOM Clean Singles',spec:'10 min @ 70%',why:'Consistent mechanics under volume.'}],
+      D:[{name:'Power Clean 5×5',spec:'@ 60%',why:'Base pulling strength.'},{name:'Push Press 4×6',spec:'@ 70%',why:'Drive path and overhead.'},{name:'Hang Clean Cycling',spec:'3×10 @ light',why:'Touch-and-go mechanics.'}],
+    }
+  },
+  {
+    id:'ohs3rm', domain:'Olympic Lifts', icon:'📐',
+    name:'OHS 3RM',
+    type:'Prescribed · 3-rep overhead squat max',
+    wod:`Build to a 3-Rep Max\nOverhead Squat\n\nFrom rack. Take 15–20 min.\nRecord heaviest successful 3.`,
+    scaledWod:`Build to a 3-Rep Max\nOHS from rack\n(Use counterbalance heel plates if needed for depth)`,
+    modifiedWod:`3-Rep Max\nGoblet Squat or Front Squat\n(Overhead restriction — no barbell OH)\n\nOR: OHS with PVC/very light bar for mobility only`,
+    inputType:'weight', inputLabel:'Weight (lbs)', inputPlaceholder:'0',
+    standards:{ A:'≥1.0× BW', B:'0.7–1.0× BW', C:'0.4–0.7× BW', D:'<0.4× BW' },
+    thresholds:[0.4,0.7,1.0], isTime:false, needsBW:true,
+    scaledStandards:{ A:'≥0.8× BW', B:'0.5–0.8× BW', C:'0.3–0.5× BW', D:'<0.3× BW' },
+    scaledThresholds:[0.3,0.5,0.8],
+    injuries:{ overhead:'Do not perform — use goblet squat or front squat instead', wrist:'Use wrist wraps; if still painful, substitute front squat 3RM', knee:'Limit depth to pain-free range; elevate heels' },
+    accessories:{
+      A:[{name:'OHS 5×2 @ 90%+',spec:'Weekly',why:'Positional confidence at heavy loads.'}],
+      B:[{name:'OHS Pause at Bottom',spec:'4×3 @ 60%',why:'Strength in the catch position.'},{name:'Snatch-grip T-spine Opener',spec:'3×30s',why:'T-spine extension drives overhead.'}],
+      C:[{name:'OHS Pause at Bottom',spec:'4×3 BW',why:'Positional strength first.'},{name:'Ankle Mobility Protocol',spec:'5 min pre-session',why:'Dorsiflexion limits depth.'},{name:'Overhead Carry',spec:'4×20m',why:'Overhead stability in motion.'}],
+      D:[{name:'PVC OHS Daily',spec:'50 reps slow',why:'Pattern before load.'},{name:'Goblet Squat + Pause',spec:'3×12',why:'Ankle and hip mobility.'},{name:'Banded Ankle Stretch',spec:'3×45s each',why:'Dorsiflexion is the wall.'}],
+    }
+  },
+  {
+    id:'snatch1rm', domain:'Olympic Lifts', icon:'⚡',
+    name:'Snatch 1RM',
+    type:'Prescribed · max single snatch',
+    wod:`Build to a 1-Rep Max\nSnatch (squat)\n\nTake 20–25 min.\nRecord heaviest successful lift.`,
+    scaledWod:`Build to a 1-Rep Max\nPower Snatch\n(If full squat catch restricted)`,
+    modifiedWod:`Build to a 1-Rep Max\nDB Snatch (single arm)\n(Overhead or wrist restriction on barbell)`,
+    inputType:'weight', inputLabel:'Weight (lbs)', inputPlaceholder:'0',
+    standards:{ A:'≥0.9× BW', B:'0.65–0.9× BW', C:'0.4–0.65× BW', D:'<0.4× BW' },
+    thresholds:[0.4,0.65,0.9], isTime:false, needsBW:true,
+    scaledStandards:{ A:'≥0.75× BW', B:'0.5–0.75× BW', C:'0.3–0.5× BW', D:'<0.3× BW' },
+    scaledThresholds:[0.3,0.5,0.75],
+    injuries:{ overhead:'Substitute DB snatch or landmine press complex', wrist:'Use wrist wraps; if still limited, substitute DB snatch', knee:'Power snatch only — limit squat in catch' },
+    accessories:{
+      A:[{name:'Snatch Balance',spec:'4×2 @ 85–90%',why:'Receiving speed and positional confidence.'}],
+      B:[{name:'Hang Power Snatch',spec:'4×3 @ 70%',why:'Hip extension timing.'},{name:'OHS 4×3',spec:'@ 80% snatch',why:'Receiving position strength.'}],
+      C:[{name:'Snatch DL + Shrug',spec:'4×5',why:'Pull mechanics and bar path.'},{name:'Power Snatch from Blocks',spec:'4×3 light',why:'Second pull isolation.'},{name:'OHS Volume',spec:'4×5 @ 50%',why:'Overhead confidence.'}],
+      D:[{name:'PVC Snatch Drills',spec:'15 min',why:'Pattern before load.'},{name:'Hang Power Snatch',spec:'4×5 light',why:'Hip extension with manageable load.'},{name:'Overhead Squat',spec:'4×5 @ empty bar',why:'Receiving position.'}],
+    }
+  },
+  {
+    id:'row2k', domain:'Conditioning', icon:'🚣',
+    name:'2K Row',
+    type:'Prescribed · max effort for time',
+    wod:`2,000m Row\nMax Effort / For Time\n\nDamper 5–7. Push even splits.\nHR data especially valuable here.`,
+    scaledWod:`2,000m Row\n@ 85% effort\n(Modified HR cap — cardiac/respiratory)`,
+    modifiedWod:`1,000m Row\n@ max effort\n(Cardiac restriction — shorter duration)\n\nOR: 20-min Bike Erg for time`,
+    inputType:'time', inputLabel:'Time (mm:ss)', inputPlaceholder:'7:30',
+    standards:{ A:'<7:00 M / <8:00 F', B:'7:00–8:00 M / 8:00–9:00 F', C:'8:01–9:30 M / 9:01–10:30 F', D:'>9:30 M / >10:30 F' },
+    thresholds:[570,480,420], isTime:true,
+    scaledStandards:{ A:'<7:30', B:'7:30–8:30', C:'8:31–10:00', D:'>10:00' },
+    scaledThresholds:[600,510,450],
+    injuries:{ lower_back:'Adjust foot strap — avoid extreme layback; power from legs only', cardio:'Cap HR at doctor-prescribed limit; use modified test' },
+    accessories:{
+      A:[{name:'1K Row Repeats',spec:'6×1K @ 2K pace −3 sec/500, 2 min rest',why:'Sub-max threshold work.'}],
+      B:[{name:'Zone 2 Row',spec:'3×/week × 30 min conversational',why:'Aerobic base is the ceiling.'},{name:'500m Split Practice',spec:'8×500m @ 2K pace, 90s rest',why:'Pacing discipline at race speed.'}],
+      C:[{name:'Daily 20 Min Easy Row',spec:'@ 65% HR, nasal breathing',why:'Build the aerobic base first.'},{name:'Row Technique Work',spec:'10 min: legs drive 70%',why:'Most people waste output on arms.'}],
+      D:[{name:'Daily 15 Min Easy Row',spec:'Conversational pace',why:'Volume at manageable intensity.'},{name:'500m Pace Familiarization',spec:'4×500m @ relaxed effort',why:'Learn what sustainable feels like.'}],
+    }
+  },
+  {
+    id:'cindy', domain:'Conditioning', icon:'🫁',
+    name:'Cindy',
+    type:'CF Benchmark · 20-min AMRAP',
+    wod:`20-Minute AMRAP\n5 Pull-ups\n10 Push-ups\n15 Air Squats`,
+    scaledWod:`20-Minute AMRAP\n5 Ring Rows\n10 Push-ups (knee)\n15 Air Squats`,
+    modifiedWod:`20-Minute AMRAP\n5 Ring Rows\n10 DB Floor Press\n15 Air Squats\n(Shoulder/wrist modification)`,
+    inputType:'rounds', inputLabel:'Rounds + Reps (e.g. 20+5)', inputPlaceholder:'20+5',
+    standards:{ A:'25+ rounds', B:'20–24 rounds', C:'14–19 rounds', D:'<14 rounds' },
+    thresholds:[14,20,25], isTime:false, isRoundsReps:true,
+    scaledStandards:{ A:'22+ rounds', B:'16–21 rounds', C:'10–15 rounds', D:'<10 rounds' },
+    scaledThresholds:[10,16,22],
+    injuries:{ shoulder:'Replace push-ups with DB floor press or pike push-ups', wrist:'Replace push-ups with DB floor press; use fist push-ups if mild', knee:'Step air squats; reduce depth to pain-free' },
+    accessories:{
+      A:[{name:'HR Pacing Practice',spec:'20 min AMRAP keeping HR <165',why:'Find sustainable threshold ceiling.'}],
+      B:[{name:'Zone 2 Capacity',spec:'2×/week × 30 min',why:'Engine is often the limiter.'},{name:'Pull-up + Push-up Volume',spec:'3×max strict daily',why:'Gymnastics strength limiting output.'}],
+      C:[{name:'Aerobic Base First',spec:'Zone 2 × 3/week × 30 min',why:'Conditioning ceiling is aerobic base.'},{name:'Movement Efficiency Drill',spec:'3×5 min easy Cindy',why:'Smooth transitions save big time.'}],
+      D:[{name:'Aerobic Base Priority',spec:'Zone 2 × 4/week',why:'Conditioning base must come first.'},{name:'Gymnastics Volume',spec:'Pull-up + push-up daily practice',why:'Movement fluency limits output at this level.'}],
+    }
+  },
+  {
+    id:'run5k', domain:'Conditioning', icon:'🏃',
+    name:'5K Run',
+    type:'Prescribed · max effort for time',
+    wod:`5,000m Run\nFor Time · Max Effort\n\nFlat course preferred.\nHR data great for pacing analysis.`,
+    scaledWod:`5,000m Run\n@ 85% effort\n(Modified for HR cap)`,
+    modifiedWod:`3,000m Run\n@ max effort\n(Knee/lower back modification)\n\nOR: 5K on bike erg / row`,
+    inputType:'time', inputLabel:'Time (mm:ss)', inputPlaceholder:'25:00',
+    standards:{ A:'<21:00', B:'21:00–25:00', C:'25:01–30:00', D:'>30:00' },
+    thresholds:[1800,1500,1260], isTime:true,
+    scaledStandards:{ A:'<23:00', B:'23:00–27:00', C:'27:01–32:00', D:'>32:00' },
+    scaledThresholds:[1920,1620,1380],
+    injuries:{ knee:'Substitute rowing or cycling; impact loading not recommended', lower_back:'Run on soft surface only; shorten to 3K if needed', cardio:'Cap HR; use modified distance' },
+    accessories:{
+      A:[{name:'Tempo Run',spec:'2×/week × 20 min @ 85–88% HR max',why:'Lactate threshold development.'}],
+      B:[{name:'Easy Run Volume',spec:'3×/week × 25–35 min @ 70% HR',why:'Aerobic base is the ceiling.'},{name:'400m Repeats',spec:'6× @ 5K pace, 90s rest',why:'Race-pace neuromuscular patterning.'}],
+      C:[{name:'Walk/Run Intervals',spec:'30 min: 2 min run / 1 min walk',why:'Build to sustained running.'},{name:'Daily 20 Min Easy Jog',spec:'Nasal breathing',why:'Volume at manageable intensity.'}],
+      D:[{name:'Walk/Run Progression',spec:'20 min alternating',why:'Entry-level cardiovascular base.'},{name:'Daily 15 Min Easy Effort',spec:'Any monostructural, nasal breathing',why:'Volume is the fix.'}],
+    }
+  },
+];
+
+const QUESTIONS = [
+  { id:'pullup', domain:'Gymnastics', icon:'🤸', title:'Strict Pull-ups', sub:'Max unbroken strict pull-ups from dead hang.', options:[{s:3,l:'10+ reps'},{s:2,l:'5–9 reps'},{s:1,l:'1–4 reps'},{s:0,l:'Cannot do one'}] },
+  { id:'muscle_up', domain:'Gymnastics', icon:'🤸', title:'Muscle-up', sub:'Bar or ring muscle-up ability.', options:[{s:3,l:'Ring MU, multiple'},{s:2,l:'Bar MU or 1 ring MU'},{s:1,l:'Close, no rep yet'},{s:0,l:'Far from it'}] },
+  { id:'handstand', domain:'Gymnastics', icon:'🤸', title:'Handstand / HSPU', sub:'Freestanding hold or handstand push-up ability.', options:[{s:3,l:'Kipping HSPU + 10s hold'},{s:2,l:'Strict HSPU or 10s hold'},{s:1,l:'Wall hold only'},{s:0,l:'Uncomfortable inverted'}] },
+  { id:'ttb', domain:'Gymnastics', icon:'🤸', title:'Toes-to-Bar', sub:'Kipping toes-to-bar, unbroken.', options:[{s:3,l:'15+ unbroken'},{s:2,l:'8–14 unbroken'},{s:1,l:'1–7 reps'},{s:0,l:'Cannot perform'}] },
+  { id:'dips', domain:'Gymnastics', icon:'🤸', title:'Ring Dips', sub:'Strict ring dips in support position.', options:[{s:3,l:'10+ strict'},{s:2,l:'4–9 strict'},{s:1,l:'1–3 or bar dips'},{s:0,l:'Cannot support on rings'}] },
+  { id:'snatch_tech', domain:'Olympic Lifts', icon:'🏋️', title:'Snatch Technique', sub:'Mechanics and consistency of your squat snatch.', options:[{s:3,l:'Solid — consistent catch'},{s:2,l:'Decent — misses under fatigue'},{s:1,l:'Power snatch only'},{s:0,l:'Not trained'}] },
+  { id:'clean_tech', domain:'Olympic Lifts', icon:'🏋️', title:'Clean Technique', sub:'Mechanics of your squat clean.', options:[{s:3,l:'Full squat, consistent'},{s:2,l:'Power clean primary'},{s:1,l:'Inconsistent, front rack issues'},{s:0,l:'Deadlift-shrug pattern'}] },
+  { id:'jerk', domain:'Olympic Lifts', icon:'🏋️', title:'Jerk', sub:'Overhead stability and footwork.', options:[{s:3,l:'Split jerk, stable'},{s:2,l:'Push jerk, mostly solid'},{s:1,l:'Inconsistent, press-outs'},{s:0,l:'Strict press only'}] },
+  { id:'front_rack', domain:'Olympic Lifts', icon:'🏋️', title:'Front Rack Mobility', sub:'Wrist/elbow/shoulder in the front rack.', options:[{s:3,l:'Full rack, elbows high'},{s:2,l:'Functional, some tightness'},{s:1,l:'Cross-arm or fingertips'},{s:0,l:'Cannot front rack'}] },
+  { id:'oh_squat', domain:'Olympic Lifts', icon:'🏋️', title:'Overhead Squat', sub:'OHS to depth with load.', options:[{s:3,l:'Comfortable loaded'},{s:2,l:'BW to depth'},{s:1,l:'PVC to depth'},{s:0,l:'Cannot reach depth'}] },
+  { id:'aerobic_base', domain:'Conditioning', icon:'🫁', title:'Aerobic Base', sub:'2K row or 5K run pace estimate.', options:[{s:3,l:'Row <7:00 / Run <22:00'},{s:2,l:'Row 7–8:00 / Run 22–26:00'},{s:1,l:'Row 8–9:30 / Run 26–32:00'},{s:0,l:'Row 9:30+ / Run 32:00+'}] },
+  { id:'anaerobic', domain:'Conditioning', icon:'🫁', title:'Anaerobic Threshold', sub:'Output in 5–8 min max-effort pieces.', options:[{s:3,l:'High output, pace holds'},{s:2,l:'Decent, fade late'},{s:1,l:'Significant drop-off'},{s:0,l:'Gas out quickly'}] },
+  { id:'recovery', domain:'Conditioning', icon:'🫁', title:'HR Recovery', sub:'Rate of HR recovery between rounds.', options:[{s:3,l:'Fast — rarely breath-limited'},{s:2,l:'Good — recovers in short rest'},{s:1,l:'Moderate — often limiting'},{s:0,l:'Slow — always limiting'}] },
+  { id:'monostructural', domain:'Conditioning', icon:'🫁', title:'Long Monostructural', sub:'Endurance on sustained 20+ min cardio.', options:[{s:3,l:'Strong, enjoy long pieces'},{s:2,l:'Solid to 20–30 min'},{s:1,l:'Fades past 10–15 min'},{s:0,l:'Struggle / avoid'}] },
+  { id:'pacing', domain:'Conditioning', icon:'🫁', title:'Pacing / Strategy', sub:'Ability to pace workouts intelligently.', options:[{s:3,l:'Even splits, good race sense'},{s:2,l:'Getting better, some redlines'},{s:1,l:'Often go out too hot'},{s:0,l:'Survive mode only'}] },
+  { id:'barbell_cond', domain:'Conditioning', icon:'🫁', title:'Barbell Conditioning', sub:'Cycling barbell efficiently when fatigued.', options:[{s:3,l:'Efficient, minimal rest'},{s:2,l:'Decent, technique slips'},{s:1,l:'Breaks frequently'},{s:0,l:'Significant struggle'}] },
+  { id:'dups_cond', domain:'Conditioning', icon:'🫁', title:'DU Efficiency', sub:'Double-unders under WOD fatigue.', options:[{s:3,l:'Consistent, rarely trip'},{s:2,l:'Decent, some trips'},{s:1,l:'Unreliable under fatigue'},{s:0,l:'Singles only'}] },
+  { id:'mental', domain:'Conditioning', icon:'🫁', title:'Mental Toughness', sub:'Ability to push through discomfort in hard efforts.', options:[{s:3,l:'Locked in, embrace it'},{s:2,l:'Solid, occasional quit moments'},{s:1,l:'Often back off'},{s:0,l:'Frequently quit early'}] },
+];
+
+const SELF_ACCESSORIES = {
+  pullup:{1:[{name:'Strict Negatives',spec:'4×5 @ 4s lower',why:'Eccentric lat overload.'},{name:'Ring Row',spec:'3×12 slow',why:'Horizontal pulling volume.'},{name:'Dead Hang + Scap Pull',spec:'3×30s + 10',why:'Starting position strength.'}],0:[{name:'Jumping Negative',spec:'5×5 @ 5s lower',why:'Entry-level lat loading.'},{name:'Inverted Row',spec:'4×8',why:'Horizontal pull foundation.'},{name:'Lat Pulldown',spec:'3×12',why:'Isolated lat strength.'}]},
+  muscle_up:{1:[{name:'False Grip Ring Row',spec:'4×8 slow',why:'False grip is MU prerequisite.'},{name:'Jumping Ring MU Negative',spec:'5×3 @ 3s lower',why:'Trains transition and deep dip.'},{name:'High Pull-up',spec:'4×5 weighted',why:'Get chin/chest high.'}],0:[{name:'Chest-to-Bar Pull-up',spec:'4×5',why:'Must achieve C2B first.'},{name:'Ring Dip from Box',spec:'4×8',why:'Build catch-position strength.'}]},
+  handstand:{1:[{name:'Wall Walk + Hold',spec:'4×30s at top',why:'Overhead endurance.'},{name:'Pike HSPU',spec:'4×5 slow',why:'Overhead pressing pattern.'},{name:'Kick-up Practice',spec:'5 min daily',why:'Balance confidence.'}],0:[{name:'Wall Handstand Hold',spec:'3×30s',why:'Basic inversion comfort.'},{name:'Pike Push-up',spec:'3×10',why:'Overhead press pattern.'}]},
+  ttb:{1:[{name:'Hollow Body Hold',spec:'4×30s',why:'Midline tension drives kip.'},{name:'Kipping Knee Raise',spec:'3×15',why:'Kip rhythm before extension.'},{name:'Hanging L-sit',spec:'3×15s',why:'Hip flexor strength.'}],0:[{name:'Hanging Scap Pull',spec:'3×10',why:'Basic lat activation.'},{name:'V-up',spec:'3×12',why:'Hip flexor coordination.'}]},
+  dips:{1:[{name:'Ring Support Hold',spec:'4×30s',why:'Stability before movement.'},{name:'Ring Dip Negative',spec:'4×5 @ 3s lower',why:'Eccentric pressing strength.'},{name:'Weighted Bar Dip',spec:'3×8',why:'Raw dip strength.'}],0:[{name:'Box Dip',spec:'3×12',why:'Reduced load push pattern.'},{name:'Ring Support Hold',spec:'3×20s',why:'Just support bodyweight first.'}]},
+  snatch_tech:{1:[{name:'Snatch Balance',spec:'4×3 light',why:'Receiving speed.'},{name:'Hang Power Snatch',spec:'4×3 @ 70%',why:'Hip extension timing.'},{name:'OHS Pause',spec:'4×3 @ 50%',why:'Catch confidence.'}],0:[{name:'PVC Snatch Drills',spec:'15 min',why:'Pattern before load.'},{name:'Snatch DL + Shrug',spec:'4×5',why:'Pull sequence foundation.'}]},
+  clean_tech:{1:[{name:'Clean Pull + High Elbows',spec:'4×3 @ 80%',why:'Elbow speed.'},{name:'Front Squat Pause',spec:'4×3 @ 75%',why:'Catch confidence.'},{name:'Clean from Blocks',spec:'4×3 @ 75%',why:'Second pull isolation.'}],0:[{name:'Power Clean + Front Squat',spec:'4×3 light',why:'Bar comfort.'},{name:'Romanian DL + Shrug',spec:'4×5',why:'Pull sequence.'}]},
+  jerk:{1:[{name:'Jerk Balance',spec:'4×3 light',why:'Dip-drive timing.'},{name:'Push Press',spec:'4×5 @ 80%',why:'Drive path and strength.'},{name:'Split Footwork Drill',spec:'5 min',why:'Foot position is the limit.'}],0:[{name:'Press Behind Neck',spec:'3×8 light',why:'Overhead stability.'},{name:'Dip + Drive Practice',spec:'5 min PVC',why:'Vertical dip pattern.'}]},
+  front_rack:{1:[{name:'Wrist Stretching',spec:'5 min pre-session',why:'Wrist extension limits most.'},{name:'Elbow Elevation Hold',spec:'3×30s loaded',why:'Shoulder internal rotation.'},{name:'Sleeper Stretch',spec:'3×45s each',why:'Posterior shoulder capsule.'}],0:[{name:'PVC Rack Stretch',spec:'5 min',why:'Basic rack mobility.'},{name:'Prayer Stretch',spec:'3×30s',why:'Wrist mobility first.'}]},
+  oh_squat:{1:[{name:'OHS Pause at Bottom',spec:'4×3 BW',why:'Positional strength.'},{name:'Ankle Mobility',spec:'5 min pre-session',why:'Dorsiflexion limits depth.'},{name:'T-spine Opener',spec:'3×30s',why:'Extension drives overhead.'}],0:[{name:'PVC OHS',spec:'3×10 slow',why:'Pattern with zero load.'},{name:'Goblet Squat + Pause',spec:'3×12',why:'Ankle and hip mobility.'}]},
+  aerobic_base:{1:[{name:'Zone 2 Row/Run/Bike',spec:'2×/week × 35 min',why:'Mitochondrial density.'},{name:'1K Row Repeats',spec:'5×1K moderate, 2 min rest',why:'Aerobic capacity near threshold.'}],0:[{name:'Daily 20 Min Easy',spec:'65% HR, nasal breathing',why:'Build the base first.'},{name:'Walk/Jog Intervals',spec:'30 min alternating',why:'Volume at manageable intensity.'}]},
+  anaerobic:{1:[{name:'Bike Tabata',spec:'4 rounds × 20s max / 10s rest',why:'Max anaerobic output.'},{name:'400m Run Repeats',spec:'6× @ 85–90%, 2 min rest',why:'Threshold lactate clearance.'}],0:[{name:'500m Row Repeats',spec:'6× @ 85%, 90s rest',why:'High-intensity with feedback.'},{name:'Echo Bike 30s All-Out',spec:'8× with 90s easy',why:'Pure anaerobic capacity.'}]},
+  recovery:{1:[{name:'HR Recovery Intervals',spec:'3×: 3 min hard → <130bpm',why:'Trains the parasympathetic brake.'},{name:'Post-WOD Box Breathing',spec:'5 min',why:'Accelerates HRV recovery.'}],0:[{name:'Zone 2 Volume',spec:'3×/week × 30 min',why:'Slow recovery = aerobic deficit.'},{name:'Contrast Shower Post-WOD',spec:'Daily',why:'Parasympathetic stimulus.'}]},
+  monostructural:{1:[{name:'Long Slow Distance',spec:'1×/week × 50 min',why:'Sustained aerobic base.'},{name:'Escalating Row',spec:'20 min: add pace every 5 min',why:'Teaches pacing and builds engine.'}],0:[{name:'Daily 15 Min Easy',spec:'Any machine, conversational',why:'Volume is the fix.'}]},
+  pacing:{1:[{name:'Benchmark Splits',spec:'1×/week — track each split',why:'Calibrate against known workouts.'},{name:'Negative Split Training',spec:'3×5 min @ 85% / 5 min @ 90%',why:'Practice conservative start.'}],0:[{name:'Rower Pacing Drill',spec:'10 min, hold split',why:'Real-time pacing feedback.'},{name:'RPE Journal',spec:'Post every WOD',why:'Calibrate feel vs. output.'}]},
+  barbell_cond:{1:[{name:'Barbell Complex',spec:'5 min AMRAP: 5 DL + 5 HC + 5 FS @ light',why:'Cycling efficiency under fatigue.'},{name:'Thruster Cycling',spec:'3×2 min AMRAP light',why:'Efficiency before HR spikes.'}],0:[{name:'Light Barbell EMOM',spec:'10×1 min: 5 power cleans @ 50%',why:'Pattern at manageable intensity.'}]},
+  dups_cond:{1:[{name:'DU Under Fatigue',spec:'50 DU after every training set',why:'Simulate WOD context.'},{name:'DU Speed Sets',spec:'5×30s max',why:'Push ceiling in WOD.'}],0:[{name:'DU Practice',spec:'10 min daily',why:'Skill requires volume.'},{name:'Rhythm Rope',spec:'20 min/week',why:'Cannot shortcut this skill.'}]},
+  mental:{1:[{name:'Intentional Dark Zone',spec:'1×/week: no rest when you want to quit',why:'Expand discomfort ceiling.'},{name:'Breath Control Under Load',spec:'Box breathing mid-WOD',why:'Mental reset tool.'}],0:[{name:'Short Max Efforts',spec:'3×1 min all-out',why:'Build familiarity with high intensity.'},{name:'Commitment Reps',spec:'Start sets you fear',why:'Hesitation is the weakness.'}]},
+};
+
+// ====================== STORAGE ======================
+function getStore() { return JSON.parse(localStorage.getItem('cfassess_users') || '{}'); }
+function saveStore(data) { localStorage.setItem('cfassess_users', JSON.stringify(data)); }
+
+function getUser(name) { return getStore()[name] || null; }
+function saveUser(name, data) {
+  const store = getStore();
+  store[name] = data;
+  saveStore(store);
+}
+
+function newUserData(name, pin) {
+  return {
+    name, pin,
+    injuries: [],
+    bodyweight: 0,
+    benchResults: {},
+    assessAnswers: {},
+    assessDone: false,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+// ====================== SESSION ======================
+let currentUser = null;
+let pendingLoginUser = null;
+let assessAnswers = {};
+let qIdx = 0;
+
+// ====================== LOGIN ======================
+function renderLogin() {
+  const store = getStore();
+  const users = Object.values(store);
+  const list = document.getElementById('userList');
+  if (!users.length) {
+    list.innerHTML = '<div style="font-size:0.78rem;color:var(--ink3);font-family:\'DM Mono\',monospace;padding:4px 0 8px;">No profiles yet — create one below.</div>';
+    return;
+  }
+  list.innerHTML = users.map(u => {
+    const lastBench = Object.values(u.benchResults || {}).sort((a,b) => new Date(b.date)-new Date(a.date))[0];
+    const lastDate = lastBench ? lastBench.date : 'No results yet';
+    return `<button class="user-btn" onclick="loginUser('${u.name}')">
+      <div class="user-avatar" style="background:${stringColor(u.name)}">${u.name[0].toUpperCase()}</div>
+      <div>
+        <div class="user-name">${u.name}</div>
+        <div class="user-last">Last logged: ${lastDate}</div>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function stringColor(str) {
+  const colors = ['#c8401a','#1a6bc8','#2a9460','#7a4fc8','#d4820a','#1a8acc','#c83878','#3a8c3a'];
+  let h = 0;
+  for (let i=0; i<str.length; i++) h = (h*31 + str.charCodeAt(i)) % colors.length;
+  return colors[h];
+}
+
+function loginUser(name) {
+  pendingLoginUser = name;
+  document.getElementById('pinModalTitle').textContent = `Welcome back, ${name}`;
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinError').style.display = 'none';
+  document.getElementById('pinModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pinInput').focus(), 100);
+}
+
+function confirmPin() {
+  const pin = document.getElementById('pinInput').value;
+  const user = getUser(pendingLoginUser);
+  if (!user || user.pin !== pin) {
+    document.getElementById('pinError').style.display = 'block';
+    document.getElementById('pinInput').value = '';
+    return;
+  }
+  closeModal();
+  enterApp(pendingLoginUser);
+}
+
+function showNewUserModal() {
+  document.getElementById('newUserName').value = '';
+  document.getElementById('newUserPin').value = '';
+  document.getElementById('newUserError').style.display = 'none';
+  document.getElementById('newUserModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('newUserName').focus(), 100);
+}
+
+function createUser() {
+  const name = document.getElementById('newUserName').value.trim();
+  const pin = document.getElementById('newUserPin').value.trim();
+  const errEl = document.getElementById('newUserError');
+
+  if (!name) { errEl.textContent = 'Enter a name.'; errEl.style.display='block'; return; }
+  if (pin.length !== 4 || !/^\d+$/.test(pin)) { errEl.textContent = 'PIN must be exactly 4 digits.'; errEl.style.display='block'; return; }
+  const store = getStore();
+  if (Object.keys(store).length >= 10) { errEl.textContent = 'Max 10 users reached.'; errEl.style.display='block'; return; }
+  if (store[name]) { errEl.textContent = 'Name already taken.'; errEl.style.display='block'; return; }
+
+  saveUser(name, newUserData(name, pin));
+  closeModal();
+  // send to injury intake
+  enterApp(name, true);
+}
+
+function closeModal() {
+  document.getElementById('pinModal').style.display = 'none';
+  document.getElementById('newUserModal').style.display = 'none';
+}
+
+function enterApp(name, isNew = false) {
+  currentUser = getUser(name);
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('headerName').textContent = name;
+  document.getElementById('headerAvatar').textContent = name[0].toUpperCase();
+  document.getElementById('headerAvatar').style.background = stringColor(name);
+
+  if (isNew) {
+    switchTab('profile');
+    renderProfile(true);
+  } else {
+    switchTab('benchmark');
+    renderBenchmarks();
+  }
+
+  assessAnswers = currentUser.assessAnswers || {};
+  qIdx = 0;
+  if (!currentUser.assessDone) renderQuestion();
+  else showAssessResults(true);
+}
+
+function logout() {
+  currentUser = null;
+  assessAnswers = {};
+  qIdx = 0;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  // reset assess
+  document.getElementById('assessResults').innerHTML = '';
+  document.getElementById('assessResults').style.display = 'none';
+  document.getElementById('assessBody').style.display = 'block';
+  renderLogin();
+}
+
+// keyboard shortcut: Enter to confirm modals
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('pinModal').style.display !== 'none') confirmPin();
+    else if (document.getElementById('newUserModal').style.display !== 'none') createUser();
+  }
+});
+
+// ====================== BENCHMARK ======================
+function parseTime(str) {
+  const parts = str.trim().split(':');
+  if (parts.length === 2) return parseInt(parts[0])*60 + parseFloat(parts[1]);
+  return parseFloat(str);
+}
+
+function parseRoundsReps(str) {
+  const m = str.match(/(\d+)\s*\+?\s*(\d*)/);
+  if (m) return parseInt(m[1]) + (parseInt(m[2])||0)/15;
+  return 0;
+}
+
+function gradeScore(bench, rawValue, bw, isScaled) {
+  const thresholds = isScaled ? bench.scaledThresholds : bench.thresholds;
+  let val = rawValue;
+  if (bench.needsBW && bw > 0) val = rawValue / bw;
+
+  if (bench.isTime) {
+    if (val <= thresholds[2]) return 'A';
+    if (val <= thresholds[1]) return 'B';
+    if (val <= thresholds[0]) return 'C';
+    return 'D';
+  }
+  if (bench.isRoundsReps || bench.needsBW || !bench.isTime) {
+    if (val >= thresholds[2]) return 'A';
+    if (val >= thresholds[1]) return 'B';
+    if (val >= thresholds[0]) return 'C';
+    return 'D';
+  }
+  return 'D';
+}
+
+function getUserInjuryFlags() { return currentUser ? (currentUser.injuries || []) : []; }
+
+function isRestricted(bench) {
+  const flags = getUserInjuryFlags();
+  return flags.some(f => {
+    const flag = INJURY_FLAGS.find(i => i.id === f);
+    return flag && flag.restricts.includes(bench.id);
+  });
+}
+
+function getInjuryNotes(bench) {
+  const flags = getUserInjuryFlags();
+  const notes = [];
+  flags.forEach(f => {
+    if (bench.injuries && bench.injuries[f]) notes.push(bench.injuries[f]);
+  });
+  return notes;
+}
+
+function renderBenchmarks() {
+  const groups = { 'Gymnastics':[], 'Olympic Lifts':[], 'Conditioning':[] };
+  BENCHMARKS.forEach(b => groups[b.domain].push(b));
+
+  const flags = getUserInjuryFlags();
+  let banner = '';
+  if (flags.length) {
+    const flagLabels = flags.map(f => INJURY_FLAGS.find(i=>i.id===f)?.label || f).join(', ');
+    banner = `<div class="injury-banner">⚠️ <div><strong>Active limitations:</strong> ${flagLabels}. Some benchmarks are modified or restricted. Accessory work reflects your limitations.</div></div>`;
+  }
+  document.getElementById('injuryBanner').innerHTML = banner;
+
+  let html = '';
+  Object.entries(groups).forEach(([domain, benches]) => {
+    const icons = { 'Gymnastics':'🤸', 'Olympic Lifts':'🏋️', 'Conditioning':'🫁' };
+    html += `<div class="group-label">${icons[domain]} ${domain}</div>`;
+    benches.forEach(b => {
+      const saved = currentUser.benchResults[b.id];
+      const grade = saved?.grade || null;
+      const restricted = isRestricted(b);
+      const injuryNotes = getInjuryNotes(b);
+      const usedScale = saved?.scaled || 'rx';
+
+      html += `<div class="bench-card ${restricted ? 'restricted' : ''}" id="bcard-${b.id}">
+        <div class="bench-card-header" onclick="toggleBench('${b.id}')">
+          <div class="bench-icon">${b.icon}</div>
+          <div class="bench-meta">
+            <div class="bench-name">${b.name}</div>
+            <div class="bench-type">${b.type}</div>
+          </div>
+          <div class="bench-status">
+            ${grade
+              ? `<span class="score-badge ${usedScale !== 'rx' ? 'score-'+usedScale : 'score-'+grade}">${usedScale !== 'rx' ? usedScale.toUpperCase()+' ' : ''}${grade}</span>
+                 <span style="font-size:0.63rem;color:var(--ink3);font-family:'DM Mono',monospace;">${saved.displayVal}</span>`
+              : `<span class="score-badge score-none">${restricted ? 'Restricted' : 'Not logged'}</span>`}
+            <div class="expand-caret">▼</div>
+          </div>
+        </div>
+
+        <div class="bench-body">
+          ${restricted ? `<div style="padding:12px 15px;background:rgba(212,130,10,0.06);border-bottom:1px solid rgba(212,130,10,0.15);font-size:0.76rem;color:var(--warn);">⚠️ This benchmark may conflict with your listed limitations. Use the Modified version below.</div>` : ''}
+          ${injuryNotes.length ? `<div style="padding:10px 15px;background:rgba(122,79,200,0.05);border-bottom:1px solid rgba(122,79,200,0.12);font-size:0.74rem;color:var(--scale-color);">💡 ${injuryNotes.join(' · ')}</div>` : ''}
+
+          <div class="bench-description">
+            <div class="bench-wod">${b.wod}</div>
+          </div>
+
+          <div class="scale-toggle-row">
+            <span class="scale-toggle-label">Logging as:</span>
+            <div class="toggle-opts">
+              <button class="toggle-opt ${!saved || saved.scaled==='rx' ? 'active-rx' : ''}" id="tog-rx-${b.id}" onclick="setScale('${b.id}','rx')">Rx</button>
+              <button class="toggle-opt ${saved?.scaled==='scaled' ? 'active-scaled' : ''}" id="tog-scaled-${b.id}" onclick="setScale('${b.id}','scaled')">Scaled</button>
+              <button class="toggle-opt ${saved?.scaled==='modified' ? 'active-modified' : ''}" id="tog-modified-${b.id}" onclick="setScale('${b.id}','modified')">Modified</button>
+            </div>
+          </div>
+
+          <div class="scaled-wod ${saved?.scaled==='scaled' ? 'visible' : ''}" id="scaledWod-${b.id}">
+            <div class="scaled-wod-label">⬇ Scaled Version</div>
+            <div class="scaled-wod-text">${b.scaledWod}</div>
+          </div>
+
+          <div class="modified-wod ${saved?.scaled==='modified' ? 'visible' : ''}" id="modifiedWod-${b.id}">
+            <div class="modified-wod-label">🛠 Modified (Injury)</div>
+            <div class="modified-wod-text">${b.modifiedWod}</div>
+          </div>
+
+          <div class="bench-standards">
+            ${['A','B','C','D'].map(g => {
+              const colors = {A:'var(--score-a)',B:'var(--score-b)',C:'var(--score-c)',D:'var(--score-d)'};
+              const std = (saved?.scaled && saved.scaled !== 'rx' && b.scaledStandards) ? b.scaledStandards : b.standards;
+              return `<div class="standard-cell">
+                <div class="std-grade" style="color:${colors[g]}">${g}</div>
+                <div class="std-label">${std[g]}</div>
+              </div>`;
+            }).join('')}
+          </div>
+
+          <div class="bench-input-area">
+            ${b.needsBW ? `<div class="input-row"><div class="field-group"><label class="field-label">Bodyweight (lbs)</label><input class="field-input" id="bw-${b.id}" type="number" placeholder="175" value="${saved?.bw || currentUser.bodyweight || ''}"></div><div></div></div>` : ''}
+
+            <div class="input-row">
+              <div class="field-group">
+                <label class="field-label">${b.inputLabel}</label>
+                <input class="field-input" id="score-${b.id}" type="${b.inputType==='time'?'text':'number'}" placeholder="${b.inputPlaceholder}" value="${saved?.rawInput||''}">
+              </div>
+              ${b.extraField ? `<div class="field-group"><label class="field-label">${b.extraField.label}</label><input class="field-input" id="extra-${b.id}" type="number" placeholder="${b.extraField.placeholder}" value="${saved?.extra||''}"></div>` : '<div></div>'}
+            </div>
+
+            <div class="input-row">
+              <div class="field-group">
+                <label class="field-label">Date</label>
+                <input class="field-input" id="date-${b.id}" type="date" value="${saved?.date||new Date().toISOString().split('T')[0]}">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Notes (optional)</label>
+                <input class="field-input" id="notes-${b.id}" type="text" placeholder="How it felt..." value="${saved?.notes||''}">
+              </div>
+            </div>
+
+            <div class="hr-row">
+              <div class="hr-title">❤️ Garmin HR Data (optional)</div>
+              <div class="hr-fields">
+                <div class="field-group"><label class="field-label">Max HR (bpm)</label><input class="field-input" id="hrmax-${b.id}" type="number" placeholder="185" value="${saved?.hrMax||''}"></div>
+                <div class="field-group"><label class="field-label">Avg HR (bpm)</label><input class="field-input" id="hravg-${b.id}" type="number" placeholder="168" value="${saved?.hrAvg||''}"></div>
+                <div class="field-group"><label class="field-label">% of HR Max</label><input class="field-input" id="hrpct-${b.id}" type="number" placeholder="96" value="${saved?.hrPct||''}"></div>
+              </div>
+            </div>
+
+            <button class="save-btn" onclick="saveBench('${b.id}')">Save Result</button>
+
+            ${saved ? `
+            <div class="saved-result visible">
+              <div class="saved-date">${saved.date}${saved.scaled && saved.scaled!=='rx' ? ` · ${saved.scaled.toUpperCase()}` : ''}</div>
+              <div class="saved-score-line" style="color:${gradeColor(saved.grade)}">${saved.displayVal} — Grade ${saved.grade}</div>
+              ${saved.notes ? `<div style="font-size:0.72rem;color:var(--ink3);margin-top:3px;font-style:italic;">"${saved.notes}"</div>` : ''}
+              ${saved.hrMax ? `<div class="hr-chips"><span class="hr-chip">Max ${saved.hrMax} bpm</span>${saved.hrAvg?`<span class="hr-chip">Avg ${saved.hrAvg} bpm</span>`:''} ${saved.hrPct?`<span class="hr-chip">${saved.hrPct}% HR max</span>`:''}</div>` : ''}
+            </div>` : ''}
+          </div>
+
+          ${saved && saved.grade !== 'A' ? renderBenchAccessories(b, saved.grade, saved.scaled) : ''}
+        </div>
+      </div>`;
+    });
+  });
+
+  document.getElementById('benchmarkList').innerHTML = html;
+}
+
+function gradeColor(g) { return { A:'var(--score-a)', B:'var(--score-b)', C:'var(--score-c)', D:'var(--score-d)' }[g] || 'var(--ink)'; }
+
+function setScale(id, mode) {
+  ['rx','scaled','modified'].forEach(m => {
+    const el = document.getElementById(`tog-${m}-${id}`);
+    if (el) el.className = 'toggle-opt';
+  });
+  const activeEl = document.getElementById(`tog-${mode}-${id}`);
+  if (activeEl) activeEl.classList.add(`active-${mode}`);
+
+  const scaledWod = document.getElementById(`scaledWod-${id}`);
+  const modifiedWod = document.getElementById(`modifiedWod-${id}`);
+  if (scaledWod) scaledWod.classList.toggle('visible', mode==='scaled');
+  if (modifiedWod) modifiedWod.classList.toggle('visible', mode==='modified');
+
+  // update standards display
+  const bench = BENCHMARKS.find(b => b.id === id);
+  const saved = currentUser.benchResults[id];
+  const tempSaved = saved ? { ...saved, scaled: mode } : { scaled: mode };
+  const std = (mode !== 'rx' && bench.scaledStandards) ? bench.scaledStandards : bench.standards;
+  const stdCells = document.querySelectorAll(`#bcard-${id} .standard-cell`);
+  ['A','B','C','D'].forEach((g, i) => { if (stdCells[i]) stdCells[i].querySelector('.std-label').textContent = std[g]; });
+}
+
+function renderBenchAccessories(bench, grade, scaled) {
+  const accs = bench.accessories[grade] || [];
+  const flags = getUserInjuryFlags();
+
+  // build modified suggestions if injuries present
+  let modifiedNote = '';
+  flags.forEach(f => {
+    if (bench.injuries && bench.injuries[f]) {
+      modifiedNote = `<div style="padding:8px 15px;font-size:0.72rem;color:var(--scale-color);border-bottom:1px solid rgba(122,79,200,0.1);">💡 Modification: ${bench.injuries[f]}</div>`;
+    }
+  });
+
+  if (!accs.length && !modifiedNote) return '';
+  return `<div class="accessory-drawer">
+    <div class="acc-drawer-header">⚡ Accessory Work — Address Grade ${grade} Gap</div>
+    ${modifiedNote}
+    ${accs.map(a => `<div class="acc-item"><div class="acc-dot"></div><div><div class="acc-name">${a.name}</div><div class="acc-spec">${a.spec}</div><div class="acc-why">${a.why}</div></div></div>`).join('')}
+  </div>`;
+}
+
+function toggleBench(id) {
+  document.getElementById(`bcard-${id}`).classList.toggle('open');
+}
+
+function saveBench(id) {
+  const bench = BENCHMARKS.find(b => b.id === id);
+  const rawInput = document.getElementById(`score-${id}`).value.trim();
+  if (!rawInput) { alert('Enter a score first.'); return; }
+
+  let rawValue;
+  if (bench.isTime) rawValue = parseTime(rawInput);
+  else if (bench.isRoundsReps) rawValue = parseRoundsReps(rawInput);
+  else rawValue = parseFloat(rawInput);
+
+  const bw = bench.needsBW ? parseFloat(document.getElementById(`bw-${id}`).value)||0 : 0;
+  if (bench.needsBW && bw > 0 && !currentUser.bodyweight) {
+    currentUser.bodyweight = bw;
+  }
+
+  // determine current scale toggle
+  const scaleEl = document.querySelector(`#bcard-${id} .toggle-opt.active-rx, #bcard-${id} .toggle-opt.active-scaled, #bcard-${id} .toggle-opt.active-modified`);
+  const scaled = scaleEl ? (scaleEl.id.includes('scaled') ? 'scaled' : scaleEl.id.includes('modified') ? 'modified' : 'rx') : 'rx';
+
+  const grade = gradeScore(bench, rawValue, bw, scaled !== 'rx');
+  const date = document.getElementById(`date-${id}`).value;
+  const hrMax = document.getElementById(`hrmax-${id}`).value;
+  const hrAvg = document.getElementById(`hravg-${id}`).value;
+  const hrPct = document.getElementById(`hrpct-${id}`).value;
+  const notes = document.getElementById(`notes-${id}`).value;
+  const extra = bench.extraField ? document.getElementById(`extra-${id}`).value : null;
+
+  currentUser.benchResults[id] = { grade, rawInput, rawValue, bw, displayVal:rawInput, date, hrMax, hrAvg, hrPct, notes, extra, scaled };
+  saveUser(currentUser.name, currentUser);
+
+  renderBenchmarks();
+  setTimeout(() => {
+    const card = document.getElementById(`bcard-${id}`);
+    if (card) card.classList.add('open');
+  }, 60);
+}
+
+// ====================== SELF-ASSESS ======================
+function renderQuestion() {
+  const q = QUESTIONS[qIdx];
+  const total = QUESTIONS.length;
+  const selected = assessAnswers[q.id];
+
+  document.getElementById('assessBar').style.width = ((qIdx/total)*100)+'%';
+  document.getElementById('qLabel').textContent = `Question ${qIdx+1} of ${total}`;
+  document.getElementById('qBackBtn').style.display = qIdx>0 ? 'block' : 'none';
+  document.getElementById('qNextBtn').disabled = selected === undefined;
+  document.getElementById('qNextBtn').textContent = qIdx===total-1 ? 'See Results →' : 'Next →';
+
+  document.getElementById('qContainer').innerHTML = `
+    <div class="q-card">
+      <div class="q-domain-tag">${q.icon} ${q.domain}</div>
+      <div class="q-title">${q.title}</div>
+      <div class="q-sub">${q.sub}</div>
+      <div class="q-options">
+        ${q.options.map(opt => `
+          <button class="q-opt-btn ${selected===opt.s?'sel-'+opt.s:''}" onclick="selectQ(${opt.s})">
+            <span class="opt-num">${opt.s}</span>
+            <span class="opt-text">${opt.l}</span>
+          </button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function selectQ(score) {
+  assessAnswers[QUESTIONS[qIdx].id] = score;
+  document.getElementById('qNextBtn').disabled = false;
+  renderQuestion();
+}
+
+function qNext() {
+  if (qIdx < QUESTIONS.length-1) { qIdx++; renderQuestion(); }
+  else showAssessResults(false);
+}
+
+function qPrev() { if (qIdx>0) { qIdx--; renderQuestion(); } }
+
+function showAssessResults(fromSaved) {
+  if (!fromSaved) {
+    currentUser.assessAnswers = assessAnswers;
+    currentUser.assessDone = true;
+    saveUser(currentUser.name, currentUser);
+  } else {
+    assessAnswers = currentUser.assessAnswers || {};
+  }
+
+  document.getElementById('assessBar').style.width = '100%';
+  document.getElementById('assessBody').style.display = 'none';
+
+  const domains = {
+    'Gymnastics':{ icon:'🤸', total:0, max:0 },
+    'Olympic Lifts':{ icon:'🏋️', total:0, max:0 },
+    'Conditioning':{ icon:'🫁', total:0, max:0 },
+  };
+
+  QUESTIONS.forEach(q => {
+    domains[q.domain].total += assessAnswers[q.id]??0;
+    domains[q.domain].max += 3;
+  });
+
+  const weaknesses = QUESTIONS.map(q=>({...q,score:assessAnswers[q.id]??0})).filter(q=>q.score<=1).sort((a,b)=>a.score-b.score);
+  const strengths = QUESTIONS.map(q=>({...q,score:assessAnswers[q.id]??0})).filter(q=>q.score>=3);
+  const critical = weaknesses.filter(w=>w.score===0);
+  const moderate = weaknesses.filter(w=>w.score===1);
+  const domainColors = { 'Gymnastics':'#c8401a', 'Olympic Lifts':'#1a6bc8', 'Conditioning':'#2a9460' };
+
+  let html = `<div class="results-summary">
+    ${Object.entries(domains).map(([name,d]) => {
+      const pct = Math.round((d.total/d.max)*100);
+      const label = name==='Olympic Lifts'?'OLY LIFTS':name.toUpperCase();
+      const color = domainColors[name];
+      return `<div class="domain-result-card">
+        <div class="dr-icon">${d.icon}</div>
+        <div class="dr-name">${label}</div>
+        <div class="dr-bar-wrap"><div class="dr-bar" style="width:${pct}%;background:${color}"></div></div>
+        <div class="dr-pct" style="color:${color}">${pct}%</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  if (strengths.length) {
+    html += `<div style="margin-bottom:18px;"><div class="group-label">✅ Strengths</div><div class="strengths-wrap">${strengths.map(s=>`<div class="strength-tag">${s.title}</div>`).join('')}</div></div>`;
+  }
+
+  if (critical.length) { html += `<div class="group-label">🔴 Priority Gaps</div>`; html += critical.map(w=>buildAssessCard(w)).join(''); }
+  if (moderate.length) { html += `<div class="group-label" style="margin-top:18px;">🟡 Development Areas</div>`; html += moderate.map(w=>buildAssessCard(w)).join(''); }
+
+  if (!weaknesses.length) html += `<div style="background:rgba(42,148,96,0.06);border:1px solid rgba(42,148,96,0.2);border-radius:10px;padding:22px;text-align:center;color:var(--good);font-family:'DM Mono',monospace;font-size:0.8rem;">🎉 No critical weaknesses — strong across the board.</div>`;
+
+  html += `<button class="restart-link" onclick="restartAssess()">↺ Retake Assessment</button>`;
+
+  const el = document.getElementById('assessResults');
+  el.innerHTML = html;
+  el.style.display = 'block';
+
+  el.querySelectorAll('.rwc-header').forEach(h => {
+    h.addEventListener('click', () => h.closest('.result-weakness-card').classList.toggle('open'));
+  });
+}
+
+function buildAssessCard(w) {
+  const accs = SELF_ACCESSORIES[w.id]?.[w.score] || [];
+  return `<div class="result-weakness-card">
+    <div class="rwc-header">
+      <div class="rwc-score-pill rwc-score-${w.score}">${w.score}</div>
+      <div class="rwc-info"><div class="rwc-name">${w.title}</div><div class="rwc-domain">${w.icon} ${w.domain}</div></div>
+      <div class="rwc-caret">▼</div>
+    </div>
+    <div class="rwc-body">
+      ${accs.map(a=>`<div class="acc-item"><div class="acc-dot"></div><div><div class="acc-name">${a.name}</div><div class="acc-spec">${a.spec}</div><div class="acc-why">${a.why}</div></div></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function restartAssess() {
+  assessAnswers = {};
+  qIdx = 0;
+  currentUser.assessDone = false;
+  currentUser.assessAnswers = {};
+  saveUser(currentUser.name, currentUser);
+  document.getElementById('assessResults').style.display = 'none';
+  document.getElementById('assessResults').innerHTML = '';
+  document.getElementById('assessBody').style.display = 'block';
+  renderQuestion();
+}
+
+// ====================== PROFILE ======================
+function renderProfile(isNew = false) {
+  const u = currentUser;
+  const benchCount = Object.keys(u.benchResults||{}).length;
+  const avgGrade = calcAvgGrade(u.benchResults);
+  const flags = u.injuries || [];
+
+  let html = '';
+
+  if (isNew) {
+    html += `<div style="background:rgba(26,107,200,0.07);border:1px solid rgba(26,107,200,0.2);border-radius:10px;padding:16px;margin-bottom:20px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;color:var(--accent2);">Welcome, ${u.name}!</div>
+      <div style="font-size:0.8rem;color:var(--ink2);line-height:1.6;">Flag any current limitations below so your benchmarks and accessory programming can be adjusted. You can update these any time.</div>
+    </div>`;
+  }
+
+  // bodyweight
+  html += `<div class="profile-section">
+    <div class="profile-section-title">Body Stats</div>
+    <div class="input-row">
+      <div class="field-group">
+        <label class="field-label">Bodyweight (lbs)</label>
+        <input class="field-input" id="profileBW" type="number" placeholder="175" value="${u.bodyweight||''}">
+      </div>
+      <div style="display:flex;align-items:flex-end;">
+        <button class="save-btn" style="width:auto;padding:10px 20px;font-size:0.85rem;" onclick="saveBW()">Save</button>
+      </div>
+    </div>
+  </div>`;
+
+  // injury flags
+  html += `<div class="profile-section">
+    <div class="profile-section-title">Limitations & Injuries</div>
+    <div style="font-size:0.78rem;color:var(--ink3);margin-bottom:12px;line-height:1.5;">Check any active limitations. These modify your benchmark workouts and accessory programming.</div>
+    <div class="injury-grid">
+      ${INJURY_FLAGS.map(f => `
+        <div class="injury-toggle ${flags.includes(f.id) ? 'active' : ''}" onclick="toggleInjury('${f.id}', this)" id="injtog-${f.id}">
+          <div class="injury-check">${flags.includes(f.id) ? '✓' : ''}</div>
+          <div>
+            <div class="injury-label">${f.label}</div>
+            <div class="injury-sub-label">${f.sub}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+
+  // stats
+  html += `<div class="profile-section">
+    <div class="profile-section-title">Summary</div>
+    <div class="profile-stat-row">
+      <div class="profile-stat"><div class="ps-label">Benchmarks logged</div><div class="ps-val">${benchCount} / ${BENCHMARKS.length}</div></div>
+      <div class="profile-stat"><div class="ps-label">Avg benchmark grade</div><div class="ps-val">${avgGrade}</div><div class="ps-sub">Across logged tests</div></div>
+    </div>
+    <div class="profile-stat-row">
+      <div class="profile-stat"><div class="ps-label">Self-assess</div><div class="ps-val">${u.assessDone ? 'Complete' : 'Not done'}</div></div>
+      <div class="profile-stat"><div class="ps-label">Member since</div><div class="ps-val" style="font-size:0.9rem;">${u.createdAt ? u.createdAt.split('T')[0] : '—'}</div></div>
+    </div>
+  </div>`;
+
+  // danger zone
+  html += `<div class="danger-zone">
+    <div class="danger-title">⚠ Data</div>
+    <button class="danger-btn" onclick="clearMyData()">Clear All My Results</button>
+  </div>`;
+
+  if (isNew) {
+    html += `<button class="save-btn" style="margin-top:20px;" onclick="switchTab('benchmark');renderBenchmarks();">Start Benchmarks →</button>`;
+  }
+
+  document.getElementById('profileContent').innerHTML = html;
+}
+
+function calcAvgGrade(results) {
+  const vals = Object.values(results||{}).map(r => ({A:4,B:3,C:2,D:1}[r.grade]||0)).filter(Boolean);
+  if (!vals.length) return '—';
+  const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+  if (avg >= 3.5) return 'A';
+  if (avg >= 2.5) return 'B';
+  if (avg >= 1.5) return 'C';
+  return 'D';
+}
+
+function saveBW() {
+  const bw = parseFloat(document.getElementById('profileBW').value)||0;
+  currentUser.bodyweight = bw;
+  saveUser(currentUser.name, currentUser);
+  alert('Bodyweight saved.');
+}
+
+function toggleInjury(id, el) {
+  el.classList.toggle('active');
+  const check = el.querySelector('.injury-check');
+  const isActive = el.classList.contains('active');
+  check.textContent = isActive ? '✓' : '';
+  const injuries = currentUser.injuries || [];
+  if (isActive && !injuries.includes(id)) injuries.push(id);
+  else if (!isActive) { const i = injuries.indexOf(id); if (i>-1) injuries.splice(i,1); }
+  currentUser.injuries = injuries;
+  saveUser(currentUser.name, currentUser);
+}
+
+function clearMyData() {
+  if (!confirm(`Clear all benchmark results and assessment data for ${currentUser.name}? This cannot be undone.`)) return;
+  currentUser.benchResults = {};
+  currentUser.assessAnswers = {};
+  currentUser.assessDone = false;
+  saveUser(currentUser.name, currentUser);
+  renderProfile();
+  renderBenchmarks();
+  restartAssess();
+  alert('Data cleared.');
+}
+
+// ====================== TABS ======================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const matches = (tab==='benchmark'&&b.textContent.toLowerCase().includes('bench'))
+      || (tab==='selfassess'&&b.textContent.toLowerCase().includes('self'))
+      || (tab==='profile'&&b.textContent.toLowerCase().includes('profile'));
+    if (matches) b.classList.add('active');
+  });
+  if (tab==='profile') renderProfile();
+}
+
+// ====================== INIT ======================
+renderLogin();
+</script>
+</body>
+</html>

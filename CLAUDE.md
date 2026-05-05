@@ -37,7 +37,7 @@ cf-assess/
 - Firestore test mode rules active — expire ~30 days from May 4 2026; update rules before then
 
 ## Next Task
-Build printable/shareable summary — one-page view of an athlete's grades, domain scores, and top 3 priorities. For coach review or sharing.
+No remaining planned features. Next session: gather athlete feedback after real use and identify gaps or bugs.
 
 ## Known Issues / Constraints
 - **Max 10 users** hard-capped in `createUser()` — do not raise without reason
@@ -64,7 +64,7 @@ Build printable/shareable summary — one-page view of an athlete's grades, doma
 2. ~~JSON export/import~~ — superseded by Firestore sync ✓
 3. ~~Combined priority list~~ ✓
 4. ~~Admin view~~ ✓
-5. **Printable/shareable summary** — one-page view of grades, domain scores, top priorities (PDF-style)
+5. ~~Printable/shareable summary~~ ✓
 
 ### Benchmark grading thresholds (Rx, lbs)
 | Benchmark | A | B | C | D |

@@ -955,6 +955,21 @@ function logout() {
   renderLogin();
 }
 
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const matches = (tab==='benchmark' && b.textContent.toLowerCase().includes('bench'))
+      || (tab==='selfassess' && b.textContent.toLowerCase().includes('self'))
+      || (tab==='priority' && b.textContent.toLowerCase().includes('priority'))
+      || (tab==='profile' && b.textContent.toLowerCase().includes('profile'));
+    if (matches) b.classList.add('active');
+  });
+  if (tab==='profile') renderProfile();
+  if (tab==='priority') renderPriority();
+}
+
 // keyboard shortcut: Enter to confirm modals
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') {

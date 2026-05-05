@@ -33,9 +33,11 @@ cf-assess/
 **Deployed:**
 - `index.html` is live at https://mattziegler12-prog.github.io/cf-assess/
 - Private source repo: `cf-assessment` (origin); public Pages repo: `cf-assess` (pages remote)
+- Data syncs via Firestore (`/users/{name}`) — works across browsers and devices
+- Firestore test mode rules active — expire ~30 days from May 4 2026; update rules before then
 
 ## Next Task
-Implement benchmark history log — store an array of results per benchmark (not just the most recent) so athletes can track improvement over time. Show a delta vs previous result on the card.
+Build admin view — PIN-protected read-only mode showing all athletes' grades side by side for coach use.
 
 ## Known Issues / Constraints
 - **Max 10 users** hard-capped in `createUser()` — do not raise without reason
@@ -58,11 +60,11 @@ Implement benchmark history log — store an array of results per benchmark (not
 | Fonts via Google Fonts CDN | Barlow Condensed + Barlow + DM Mono — consistent with design |
 
 ### Upcoming features (prioritized)
-1. **Benchmark history log** — store array of results with dates; show sparkline/delta vs previous on card
-2. **JSON export/import** — download all user data as a JSON file and re-import it; needed as a backup before code changes and for cross-device use
-3. **Combined priority list** — fourth tab merging gaps from benchmarks + self-assessment into ranked weekly accessory prescription
-4. Printable/shareable summary (PDF-style, for coach review)
-5. Admin view (PIN-protected, read-only, all users side by side)
+1. ~~Benchmark history log~~ ✓
+2. ~~JSON export/import~~ — superseded by Firestore sync ✓
+3. ~~Combined priority list~~ ✓
+4. **Admin view** — PIN-protected, read-only, all users' grades side by side (coach use)
+5. Printable/shareable summary (PDF-style, for coach review)
 
 ### Benchmark grading thresholds (Rx, lbs)
 | Benchmark | A | B | C | D |

@@ -37,7 +37,7 @@ cf-assess/
 - Firestore test mode rules active — expire ~30 days from May 4 2026; update rules before then
 
 ## Next Task
-Build admin view — PIN-protected read-only mode showing all athletes' grades side by side for coach use.
+Build printable/shareable summary — one-page view of an athlete's grades, domain scores, and top 3 priorities. For coach review or sharing.
 
 ## Known Issues / Constraints
 - **Max 10 users** hard-capped in `createUser()` — do not raise without reason
@@ -63,8 +63,8 @@ Build admin view — PIN-protected read-only mode showing all athletes' grades s
 1. ~~Benchmark history log~~ ✓
 2. ~~JSON export/import~~ — superseded by Firestore sync ✓
 3. ~~Combined priority list~~ ✓
-4. **Admin view** — PIN-protected, read-only, all users' grades side by side (coach use)
-5. Printable/shareable summary (PDF-style, for coach review)
+4. ~~Admin view~~ ✓
+5. **Printable/shareable summary** — one-page view of grades, domain scores, top priorities (PDF-style)
 
 ### Benchmark grading thresholds (Rx, lbs)
 | Benchmark | A | B | C | D |

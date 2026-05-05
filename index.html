@@ -261,6 +261,16 @@ main { max-width: 700px; margin: 0 auto; padding: 0 16px 80px; }
 .hist-delta.regressed { color:var(--bad); background:rgba(200,64,26,0.1); }
 .hist-notes { font-size:0.65rem; color:var(--ink3); font-style:italic; width:100%; margin-top:1px; }
 
+/* PRIORITY TAB */
+.priority-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:8px; padding:13px 15px; display:flex; gap:14px; align-items:flex-start; }
+.priority-card.secondary { background:var(--card); }
+.priority-rank { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.8rem; line-height:1; width:26px; flex-shrink:0; text-align:center; margin-top:1px; }
+.priority-name { font-weight:600; font-size:0.9rem; margin-bottom:2px; }
+.priority-spec { font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--accent); margin-bottom:3px; }
+.priority-why { font-size:0.72rem; color:var(--ink3); line-height:1.5; margin-bottom:6px; }
+.source-tags { display:flex; flex-wrap:wrap; gap:4px; }
+.source-tag { font-family:'DM Mono',monospace; font-size:0.6rem; padding:2px 7px; border-radius:3px; background:var(--bg); border:1px solid var(--border2); color:var(--ink3); }
+
 /* ACCESSORY DRAWER */
 .accessory-drawer { border-top:1px solid var(--border); background:#fdf7f2; }
 .acc-drawer-header { padding:11px 15px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); border-bottom:1px solid rgba(200,64,26,0.1); }
@@ -417,6 +427,7 @@ main { max-width: 700px; margin: 0 auto; padding: 0 16px 80px; }
       <nav class="tab-nav">
         <button class="tab-btn active" onclick="switchTab('benchmark')">Benchmarks</button>
         <button class="tab-btn" onclick="switchTab('selfassess')">Self-Assess</button>
+        <button class="tab-btn" onclick="switchTab('priority')">Priority</button>
         <button class="tab-btn" onclick="switchTab('profile')">Profile</button>
       </nav>
       <div class="user-pill">
@@ -454,6 +465,15 @@ main { max-width: 700px; margin: 0 auto; padding: 0 16px 80px; }
         </div>
       </div>
       <div id="assessResults"></div>
+    </div>
+
+    <!-- PRIORITY TAB -->
+    <div id="tab-priority" class="tab-panel">
+      <div class="page-header">
+        <div class="page-title">WEEKLY<br><span>PRIORITY</span></div>
+        <div class="page-sub">Top accessory work ranked by gap size — benchmarks + self-assessment combined</div>
+      </div>
+      <div id="priorityContent"></div>
     </div>
 
     <!-- PROFILE TAB -->
@@ -1440,18 +1460,85 @@ function clearMyData() {
   alert('Data cleared.');
 }
 
-// ====================== TABS ======================
-function switchTab(tab) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`tab-${tab}`).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    const matches = (tab==='benchmark'&&b.textContent.toLowerCase().includes('bench'))
-      || (tab==='selfassess'&&b.textContent.toLowerCase().includes('self'))
-      || (tab==='profile'&&b.textContent.toLowerCase().includes('profile'));
-    if (matches) b.classList.add('active');
+// ====================== PRIORITY ======================
+function renderPriority() {
+  const u = currentUser;
+  const hasBench = Object.keys(u.benchResults || {}).length > 0;
+  const hasAssess = u.assessDone;
+
+  if (!hasBench && !hasAssess) {
+    document.getElementById('priorityContent').innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center;font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--ink3);line-height:1.7;">Complete at least one benchmark or the self-assessment<br>to generate your priority list.</div>`;
+    return;
+  }
+
+  const items = {};
+
+  BENCHMARKS.forEach(bench => {
+    const result = u.benchResults[bench.id];
+    if (!result || result.grade === 'A') return;
+    const score = { D:10, C:6, B:2 }[result.grade] || 0;
+    (bench.accessories[result.grade] || []).forEach(acc => {
+      if (!items[acc.name]) {
+        items[acc.name] = { name:acc.name, spec:acc.spec, why:acc.why, score, sources:[] };
+      } else if (score > items[acc.name].score) {
+        items[acc.name].score = score;
+        items[acc.name].spec = acc.spec;
+        items[acc.name].why = acc.why;
+      }
+      const src = `${bench.name} · ${result.grade}`;
+      if (!items[acc.name].sources.includes(src)) items[acc.name].sources.push(src);
+    });
   });
-  if (tab==='profile') renderProfile();
+
+  if (hasAssess) {
+    QUESTIONS.forEach(q => {
+      const val = u.assessAnswers?.[q.id];
+      if (val === undefined || val >= 2) return;
+      const score = val === 0 ? 8 : 4;
+      (SELF_ACCESSORIES[q.id]?.[val] || []).forEach(acc => {
+        if (!items[acc.name]) {
+          items[acc.name] = { name:acc.name, spec:acc.spec, why:acc.why, score, sources:[] };
+        } else if (score > items[acc.name].score) {
+          items[acc.name].score = score;
+        }
+        const src = `${q.title} · ${val}/3`;
+        if (!items[acc.name].sources.includes(src)) items[acc.name].sources.push(src);
+      });
+    });
+  }
+
+  const ranked = Object.values(items).sort((a, b) => b.score - a.score);
+
+  if (!ranked.length) {
+    document.getElementById('priorityContent').innerHTML = `<div style="background:rgba(42,148,96,0.06);border:1px solid rgba(42,148,96,0.2);border-radius:10px;padding:22px;text-align:center;color:var(--good);font-family:'DM Mono',monospace;font-size:0.8rem;">🎉 No significant gaps — strong across all tested areas.</div>`;
+    return;
+  }
+
+  const thisWeek = ranked.slice(0, 5);
+  const alsoConsider = ranked.slice(5, 12);
+
+  let html = `<div class="group-label">🎯 This week</div>`;
+  html += thisWeek.map((item, i) => buildPriorityCard(item, i + 1)).join('');
+
+  if (alsoConsider.length) {
+    html += `<div class="group-label" style="margin-top:20px;">📋 Also on the list</div>`;
+    html += alsoConsider.map((item, i) => buildPriorityCard(item, i + 6, true)).join('');
+  }
+
+  document.getElementById('priorityContent').innerHTML = html;
+}
+
+function buildPriorityCard(item, rank, secondary = false) {
+  const rankColor = item.score >= 9 ? 'var(--score-d)' : item.score >= 7 ? 'var(--score-c)' : item.score >= 5 ? 'var(--score-b)' : 'var(--ink3)';
+  return `<div class="priority-card${secondary ? ' secondary' : ''}">
+    <div class="priority-rank" style="color:${rankColor}">${rank}</div>
+    <div>
+      <div class="priority-name">${item.name}</div>
+      <div class="priority-spec">${item.spec}</div>
+      <div class="priority-why">${item.why}</div>
+      <div class="source-tags">${item.sources.map(s => `<span class="source-tag">${s}</span>`).join('')}</div>
+    </div>
+  </div>`;
 }
 
 // ====================== INIT ======================

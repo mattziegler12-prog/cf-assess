@@ -1465,6 +1465,7 @@ function renderProfile(isNew = false) {
       <div class="profile-stat"><div class="ps-label">Self-assess</div><div class="ps-val">${u.assessDone ? 'Complete' : 'Not done'}</div></div>
       <div class="profile-stat"><div class="ps-label">Member since</div><div class="ps-val" style="font-size:0.9rem;">${u.createdAt ? u.createdAt.split('T')[0] : '—'}</div></div>
     </div>
+    <button class="restart-link" style="margin-top:8px;" onclick="printSummary()">Print / Save Summary →</button>
   </div>`;
 
   // danger zone
@@ -1635,6 +1636,131 @@ function buildUserOverviewCard(u) {
 }
 
 // ====================== PRIORITY ======================
+// ====================== PRINT SUMMARY ======================
+function printSummary() {
+  const win = window.open('', '_blank');
+  win.document.write(buildSummaryHtml(currentUser));
+  win.document.close();
+  win.focus();
+}
+
+function buildSummaryHtml(u) {
+  const shortNames = { pull3min:'Pull-up', fran:'Fran', du2min:'DU', grace:'Grace', ohs3rm:'OHS', snatch1rm:'Snatch', row2k:'2K Row', cindy:'Cindy', run5k:'5K Run' };
+  const gradeColors = { A:'#2a9460', B:'#1a6bc8', C:'#d4820a', D:'#c8401a' };
+  const today = new Date().toISOString().split('T')[0];
+  const avgGrade = calcAvgGrade(u.benchResults);
+
+  const benchCells = BENCHMARKS.map(b => {
+    const r = u.benchResults?.[b.id];
+    const grade = r?.grade;
+    const gradeHtml = grade
+      ? `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:0.85rem;padding:2px 8px;border-radius:4px;background:${gradeColors[grade]}22;color:${gradeColors[grade]}">${grade}</span>`
+      : `<span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:#9a9088">—</span>`;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#faf9f7;border:1px solid #e0dbd3;border-radius:6px;">
+      <span style="font-size:0.78rem;font-weight:500">${shortNames[b.id]}</span>${gradeHtml}
+    </div>`;
+  }).join('');
+
+  let assessHtml = '';
+  if (u.assessDone && u.assessAnswers) {
+    const domains = { 'Gymnastics':{ color:'#c8401a', label:'Gymnastics', total:0, max:0 }, 'Olympic Lifts':{ color:'#1a6bc8', label:'Olympic Lifts', total:0, max:0 }, 'Conditioning':{ color:'#2a9460', label:'Conditioning', total:0, max:0 } };
+    QUESTIONS.forEach(q => { domains[q.domain].total += u.assessAnswers[q.id]??0; domains[q.domain].max += 3; });
+    assessHtml = `<div style="display:flex;gap:14px;">
+      ${Object.values(domains).map(d => {
+        const pct = Math.round((d.total/d.max)*100);
+        return `<div style="flex:1;text-align:center;">
+          <div style="font-family:'DM Mono',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.07em;color:#9a9088;margin-bottom:5px;">${d.label}</div>
+          <div style="height:6px;background:#e0dbd3;border-radius:3px;margin-bottom:5px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${d.color};border-radius:3px;"></div></div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;color:${d.color}">${pct}%</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  } else {
+    assessHtml = `<div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:#9a9088;">Self-assessment not yet completed.</div>`;
+  }
+
+  const top3 = getTopItems(u, 3);
+  const priorityHtml = top3.length
+    ? top3.map((item, i) => `<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #e0dbd3;${i===top3.length-1?'border-bottom:none':''}">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.5rem;color:#c8401a;width:24px;flex-shrink:0;line-height:1.1">${i+1}</div>
+        <div>
+          <div style="font-weight:600;font-size:0.88rem;margin-bottom:1px">${item.name}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:#c8401a;margin-bottom:4px">${item.spec}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">${item.sources.map(s=>`<span style="font-family:'DM Mono',monospace;font-size:0.58rem;padding:1px 6px;border-radius:3px;background:#f4f1ed;border:1px solid #e0dbd3;color:#9a9088">${s}</span>`).join('')}</div>
+        </div>
+      </div>`).join('')
+    : `<div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:#9a9088;">No gaps identified — strong across all tested areas.</div>`;
+
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+  <title>CF Assess — ${u.name}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Barlow',sans-serif;color:#1a1714;background:white;padding:36px;max-width:680px;margin:0 auto}
+    .section-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#9a9088;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+    .section-label::after{content:'';flex:1;height:1px;background:#e0dbd3}
+    .print-btn{display:block;margin:28px auto 0;padding:11px 28px;background:#1a1714;color:white;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer}
+    @media print{.print-btn{display:none}body{padding:0}@page{margin:0.65in}}
+  </style>
+  </head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1a1714;padding-bottom:14px;margin-bottom:22px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:0.08em">CF<span style="color:#c8401a">.</span>ASSESS</div>
+    <div style="text-align:right;font-family:'DM Mono',monospace;font-size:0.68rem;color:#9a9088">Generated ${today}<br>cfvicCity</div>
+  </div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2.6rem;letter-spacing:0.04em;text-transform:uppercase;line-height:1">${u.name}</div>
+  <div style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#9a9088;text-transform:uppercase;letter-spacing:0.1em;margin-top:3px;margin-bottom:24px">Performance Summary · Avg Grade: ${avgGrade}</div>
+
+  <div style="margin-bottom:22px">
+    <div class="section-label">Benchmarks</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${benchCells}</div>
+  </div>
+
+  <div style="margin-bottom:22px">
+    <div class="section-label">Self-Assessment</div>
+    ${assessHtml}
+  </div>
+
+  <div style="margin-bottom:22px">
+    <div class="section-label">Top 3 Priorities This Week</div>
+    ${priorityHtml}
+  </div>
+
+  <div style="border-top:1px solid #e0dbd3;padding-top:10px;font-family:'DM Mono',monospace;font-size:0.6rem;color:#9a9088;display:flex;justify-content:space-between">
+    <span>CF Assess · CrossFit Vic City</span><span>${today}</span>
+  </div>
+  <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+  </body></html>`;
+}
+
+function getTopItems(u, n) {
+  const items = {};
+  BENCHMARKS.forEach(bench => {
+    const result = u.benchResults?.[bench.id];
+    if (!result || result.grade === 'A') return;
+    const score = { D:10, C:6, B:2 }[result.grade] || 0;
+    (bench.accessories[result.grade] || []).forEach(acc => {
+      if (!items[acc.name]) { items[acc.name] = { name:acc.name, spec:acc.spec, why:acc.why, score, sources:[] }; }
+      else if (score > items[acc.name].score) { items[acc.name].score = score; items[acc.name].spec = acc.spec; items[acc.name].why = acc.why; }
+      const src = `${bench.name} · ${result.grade}`;
+      if (!items[acc.name].sources.includes(src)) items[acc.name].sources.push(src);
+    });
+  });
+  if (u.assessDone) {
+    QUESTIONS.forEach(q => {
+      const val = u.assessAnswers?.[q.id];
+      if (val === undefined || val >= 2) return;
+      const score = val === 0 ? 8 : 4;
+      (SELF_ACCESSORIES[q.id]?.[val] || []).forEach(acc => {
+        if (!items[acc.name]) { items[acc.name] = { name:acc.name, spec:acc.spec, why:acc.why, score, sources:[] }; }
+        else if (score > items[acc.name].score) { items[acc.name].score = score; }
+        const src = `${q.title} · ${val}/3`;
+        if (!items[acc.name].sources.includes(src)) items[acc.name].sources.push(src);
+      });
+    });
+  }
+  return Object.values(items).sort((a, b) => b.score - a.score).slice(0, n);
+}
+
 function renderPriority() {
   const u = currentUser;
   const hasBench = Object.keys(u.benchResults || {}).length > 0;
@@ -1645,43 +1771,7 @@ function renderPriority() {
     return;
   }
 
-  const items = {};
-
-  BENCHMARKS.forEach(bench => {
-    const result = u.benchResults[bench.id];
-    if (!result || result.grade === 'A') return;
-    const score = { D:10, C:6, B:2 }[result.grade] || 0;
-    (bench.accessories[result.grade] || []).forEach(acc => {
-      if (!items[acc.name]) {
-        items[acc.name] = { name:acc.name, spec:acc.spec, why:acc.why, score, sources:[] };
-      } else if (score > items[acc.name].score) {
-        items[acc.name].score = score;
-        items[acc.name].spec = acc.spec;
-        items[acc.name].why = acc.why;
-      }
-      const src = `${bench.name} · ${result.grade}`;
-      if (!items[acc.name].sources.includes(src)) items[acc.name].sources.push(src);
-    });
-  });
-
-  if (hasAssess) {
-    QUESTIONS.forEach(q => {
-      const val = u.assessAnswers?.[q.id];
-      if (val === undefined || val >= 2) return;
-      const score = val === 0 ? 8 : 4;
-      (SELF_ACCESSORIES[q.id]?.[val] || []).forEach(acc => {
-        if (!items[acc.name]) {
-          items[acc.name] = { name:acc.name, spec:acc.spec, why:acc.why, score, sources:[] };
-        } else if (score > items[acc.name].score) {
-          items[acc.name].score = score;
-        }
-        const src = `${q.title} · ${val}/3`;
-        if (!items[acc.name].sources.includes(src)) items[acc.name].sources.push(src);
-      });
-    });
-  }
-
-  const ranked = Object.values(items).sort((a, b) => b.score - a.score);
+  const ranked = getTopItems(u, 99);
 
   if (!ranked.length) {
     document.getElementById('priorityContent').innerHTML = `<div style="background:rgba(42,148,96,0.06);border:1px solid rgba(42,148,96,0.2);border-radius:10px;padding:22px;text-align:center;color:var(--good);font-family:'DM Mono',monospace;font-size:0.8rem;">🎉 No significant gaps — strong across all tested areas.</div>`;
